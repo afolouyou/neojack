@@ -1,0 +1,44 @@
+pub const JACK_PROTOCOL_VERSION: u32 = 9;
+
+pub const BUFFER_SIZE_MAX: u32 = 8192;
+
+pub const JACK_PORT_NAME_SIZE: u32 = 256;
+pub const JACK_PORT_TYPE_SIZE: u32 = 32;
+pub const JACK_SERVER_NAME_SIZE: u32 = 256;
+pub const JACK_CLIENT_NAME_SIZE: u32 = 64;
+pub const JACK_MESSAGE_SIZE: u32 = 256;
+pub const JACK_UUID_SIZE: u32 = 36;
+pub const JACK_UUID_STRING_SIZE: u32 = 37;
+pub const JACK_SESSION_COMMAND_SIZE: u32 = 256;
+pub const SYNC_MAX_NAME_SIZE: u32 = 256;
+pub const REAL_JACK_PORT_NAME_SIZE: u32 = JACK_CLIENT_NAME_SIZE + JACK_PORT_NAME_SIZE;
+
+pub const JACK_CLIENT_NAME_SIZE_1: u32 = JACK_CLIENT_NAME_SIZE + 1;
+pub const JACK_PORT_NAME_SIZE_1: u32 = JACK_PORT_NAME_SIZE + 1;
+pub const JACK_PORT_TYPE_SIZE_1: u32 = JACK_PORT_TYPE_SIZE + 1;
+pub const JACK_MESSAGE_SIZE_1: u32 = JACK_MESSAGE_SIZE + 1;
+pub const REAL_JACK_PORT_NAME_SIZE_1: u32 = REAL_JACK_PORT_NAME_SIZE + 1;
+pub const JACK_LOAD_INIT_LIMIT: u32 = 1024;
+pub const JACK_LOAD_INIT_LIMIT_1: u32 = JACK_LOAD_INIT_LIMIT + 1;
+pub const MAX_PATH: u32 = 256;
+pub const MAX_PATH_1: u32 = MAX_PATH + 1;
+
+pub const PORT_NUM: u32 = 256;
+pub const PORT_NUM_MAX: u32 = 512;
+pub const DRIVER_PORT_NUM: u32 = 256;
+pub const PORT_NUM_FOR_CLIENT: u32 = 768;
+pub const FIRST_AVAILABLE_PORT: u32 = 1;
+pub const CONNECTION_NUM_FOR_PORT: u32 = PORT_NUM_FOR_CLIENT;
+pub const CLIENT_NUM: u32 = 64;
+
+pub const AUDIO_DRIVER_REFNUM: u16 = 0;
+pub const FREEWHEEL_DRIVER_REFNUM: u16 = 1;
+
+pub const ALL_PORTS: u32 = 0xFFFF;
+pub const NO_PORT: u32 = 0xFFFE;
+pub const EMPTY: u32 = 0xFFFD;
+pub const FREE: u32 = 0xFFFC;
+
+pub const MAX_SOCKET_PATH: u32 = 108;
+
+pub const ADDON_DIR = "/usr/lib/jack";

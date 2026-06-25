@@ -1,0 +1,38 @@
+cimport.o: \
+  /home/folou/Documentos/njackd/.zig-cache/o/7e2381f8aaedee10fa0daea9ef1a21ab/cimport.h \
+  /usr/lib/zig/libc/include/generic-glibc/sys/mman.h \
+  /usr/lib/zig/libc/include/generic-glibc/features.h \
+  /usr/lib/zig/libc/include/generic-glibc/features-time64.h \
+  /usr/lib/zig/libc/include/x86_64-linux-gnu/bits/wordsize.h \
+  /usr/lib/zig/libc/include/x86_64-linux-gnu/bits/timesize.h \
+  /usr/lib/zig/libc/include/generic-glibc/stdc-predef.h \
+  /usr/lib/zig/libc/include/generic-glibc/sys/cdefs.h \
+  /usr/lib/zig/libc/include/x86_64-linux-gnu/bits/long-double.h \
+  /usr/lib/zig/libc/include/x86_64-linux-gnu/gnu/stubs.h \
+  /usr/lib/zig/libc/include/x86_64-linux-gnu/gnu/stubs-64.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/types.h \
+  /usr/lib/zig/libc/include/x86_64-linux-gnu/bits/typesizes.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/time64.h \
+  /usr/lib/zig/include/stddef.h /usr/lib/zig/include/__stddef_size_t.h \
+  /usr/lib/zig/libc/include/x86_64-linux-gnu/bits/mman.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/mman-map-flags-generic.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/mman-linux.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/mman-shared.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/mman_ext.h \
+  /usr/lib/zig/libc/include/generic-glibc/fcntl.h \
+  /usr/lib/zig/libc/include/x86_64-linux-gnu/bits/fcntl.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/fcntl-linux.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/types/struct_timespec.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/endian.h \
+  /usr/lib/zig/libc/include/x86_64-linux-gnu/bits/endianness.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/types/time_t.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/stat.h \
+  /usr/lib/zig/libc/include/x86_64-linux-gnu/bits/struct_stat.h \
+  /usr/lib/zig/libc/include/generic-glibc/unistd.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/posix_opt.h \
+  /usr/lib/zig/libc/include/x86_64-linux-gnu/bits/environments.h \
+  /usr/lib/zig/include/__stddef_null.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/confname.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/getopt_posix.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/getopt_core.h \
+  /usr/lib/zig/libc/include/generic-glibc/bits/unistd_ext.h
