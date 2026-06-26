@@ -39,26 +39,27 @@ pub const NamedFutex = struct {
     pub fn allocate(self: *Self, client_name: []const u8, server_name: []const u8, initial_value: i32) !void {
         const uid = std.os.linux.geteuid();
 
-        const name_len = std.fmt.bufPrint(&self.name, "jack_sem.{d}_{s}_{s}", .{ uid, server_name, client_name }) catch {
+        const name_slice = std.fmt.bufPrint(&self.name, "jack_sem.{d}_{s}_{s}", .{ uid, server_name, client_name }) catch {
             std.log.err("NamedFutex: name too long", .{});
             return error.NameTooLong;
         };
 
-        std.log.info("NamedFutex::Allocate name = {s}", .{self.name[0..name_len]);
+        std.log.info("NamedFutex::Allocate name = {s}", .{name_slice});
 
-        const fd = c.shm_open(@ptrCast(&self.name), c.O_CREAT | c.O_RDWR, 0o777);
+        const name_ptr: [*:0]u8 = @ptrCast(&self.name);
+        const fd = c.shm_open(name_ptr, c.O_CREAT | c.O_RDWR, 0o777);
         if (fd == -1) {
-            std.log.err("Allocate: can't create named futex name = {s}", .{self.name[0..name_len]);
+            std.log.err("Allocate: can't create named futex name = {s}", .{name_slice});
             return error.FutexCreateFailed;
         }
         errdefer {
             _ = c.close(fd);
-            _ = c.shm_unlink(@ptrCast(&self.name));
+            _ = c.shm_unlink(name_ptr);
         }
 
-        if (posix.ftruncate(fd, @sizeOf(FutexData))) {
+        posix.ftruncate(fd, @sizeOf(FutexData)) catch {
             return error.FutexTruncateFailed;
-        }
+        };
 
         const mmap_ptr = posix.mmap(
             null,
@@ -93,7 +94,8 @@ pub const NamedFutex = struct {
             _ = c.close(self.fd);
             self.fd = -1;
         }
-        _ = c.shm_unlink(@ptrCast(&self.name));
+        const name_ptr: [*:0]u8 = @ptrCast(&self.name);
+        _ = c.shm_unlink(name_ptr);
         @memset(&self.name, 0);
     }
 

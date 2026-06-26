@@ -7,6 +7,7 @@ const request = @import("../protocol/request.zig");
 const shm = @import("../shm/layouts.zig");
 const SharedMemory = @import("../shm/mem.zig").SharedMemory;
 const registry = @import("../shm/registry.zig");
+const NamedFutex = @import("../shm/named_futex.zig").NamedFutex;
 const Port = @import("../graph/port.zig").Port;
 const GraphManager = @import("../graph/graph_manager.zig").GraphManager;
 const ClientTable = @import("../engine/engine.zig").ClientTable;
@@ -14,6 +15,7 @@ const ClientTable = @import("../engine/engine.zig").ClientTable;
 const SHM_ENGINE: i32 = 0;
 const SHM_GRAPH: i32 = 1;
 const SHM_CLIENT_BASE: i32 = 2;
+const CLIENT_NUM: usize = @as(usize, @intCast(c.CLIENT_NUM));
 
 pub const Channel = struct {
     allocator: std.mem.Allocator,
@@ -32,6 +34,9 @@ pub const Channel = struct {
     // Notification sockets per client (indexed by refnum)
     notify_sockets: std.ArrayListUnmanaged(posix.fd_t),
 
+    // Named futex synchronisation per client (indexed by refnum)
+    synchro_table: [CLIENT_NUM]NamedFutex,
+
     const Self = @This();
 
     pub fn init(allocator: std.mem.Allocator, server_name: []const u8) Self {
@@ -47,6 +52,7 @@ pub const Channel = struct {
             .engine_shm = null,
             .graph_shm = null,
             .notify_sockets = .{},
+            .synchro_table = [_]NamedFutex{NamedFutex.init()} ** CLIENT_NUM,
         };
     }
 
@@ -298,6 +304,17 @@ pub const Channel = struct {
             } else |_| {}
         }
 
+        // Allocate named futex for client synchronisation
+        self.synchro_table[@as(usize, @intCast(refnum))].allocate(name, self.server_name, 0) catch {
+            std.log.err("Failed to allocate named futex for client {s}", .{name});
+            registry.clearRegistryEntry(client_shm_idx);
+            SharedMemory.unmapMemory(client_ptr, client_size);
+            SharedMemory.closeFd(client_fd_shm);
+            shm_helper.unlinkSegment(seg_name);
+            ct.free(refnum);
+            return;
+        };
+
         // Connect notification socket to client's listen socket
         self.connectNotifySocket(name, refnum);
 
@@ -326,6 +343,9 @@ pub const Channel = struct {
 
         // Unregister client SHM from registry
         registry.clearRegistryEntry(client_shm_idx);
+
+        // Destroy named futex for this client
+        self.synchro_table[@as(usize, @intCast(@max(req.fRefNum, 0)))].destroy();
 
         // Close notification socket for this client
         const idx = @as(usize, @intCast(@max(req.fRefNum, 0)));
