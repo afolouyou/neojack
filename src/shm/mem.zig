@@ -33,7 +33,7 @@ pub const SharedMemory = struct {
     }
 
     fn makeShmName(self: *const Self, name: []const u8) []u8 {
-        return std.fmt.allocPrint(self.allocator, "/jack_{s}_{d}_{s}", .{ self.server_name, self.pid, name }) catch |e| {
+        return std.fmt.allocPrint(self.allocator, "/jack_{s}_{d}_shm_{s}", .{ self.server_name, self.pid, name }) catch |e| {
             std.debug.panic("Failed to allocate SHM name: {any}", .{e});
         };
     }
@@ -49,7 +49,7 @@ pub const SharedMemory = struct {
         const z_name = toCString(self.allocator, shm_name);
         defer self.allocator.free(z_name);
 
-        const fd = c.shm_open(z_name, c.O_RDWR | c.O_CREAT | c.O_EXCL, 0o644);
+        const fd = c.shm_open(z_name, c.O_RDWR | c.O_CREAT, 0o644);
         if (fd == -1) return error.ShmCreateFailed;
         errdefer _ = c.close(fd);
 

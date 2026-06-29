@@ -1,10 +1,21 @@
-const c = @import("constants");
+const c = @import("../constants.zig");
 
 pub const jack_shm_info_t = extern struct {
-    index: i32,
-    size: i32,
-    attached: u8,
+    index: i16 align(1),
+    size: i32 align(1),
+    ptr: extern union {
+        attached_at: ?*anyopaque,
+        ptr_size: [8]u8,
+    } align(1),
 };
+
+pub fn shmAddr(info: *const jack_shm_info_t) ?*anyopaque {
+    return @as(*const ?*anyopaque, @ptrCast(&info.ptr.attached_at)).*;
+}
+
+pub fn setShmAddr(info: *jack_shm_info_t, addr: ?*anyopaque) void {
+    @as(*?*anyopaque, @ptrCast(&info.ptr.attached_at)).* = addr;
+}
 
 pub const JackShmMemAble = extern struct {
     fInfo: jack_shm_info_t,
@@ -29,27 +40,27 @@ pub const jack_transport_state_t = enum(u32) {
 pub const jack_position_bits_t = u32;
 
 pub const _jack_position = extern struct {
-    unique_1: u64,
-    usecs: u64,
-    frame_rate: u32,
-    frame: u32,
-    valid: u32,
-    bar: i32,
-    beat: i32,
-    tick: i32,
-    bar_start_tick: f64,
-    beats_per_bar: f32,
-    beat_type: f32,
-    ticks_per_beat: f64,
-    beats_per_minute: f64,
-    frame_time: f64,
-    next_time: f64,
-    bbt_offset: u32,
-    audio_frames_per_video_frame: f32,
-    video_offset: u32,
-    tick_double: f64,
-    padding: [5]i32,
-    unique_2: u64,
+    unique_1: u64 align(1),
+    usecs: u64 align(1),
+    frame_rate: u32 align(1),
+    frame: u32 align(1),
+    valid: u32 align(1),
+    bar: i32 align(1),
+    beat: i32 align(1),
+    tick: i32 align(1),
+    bar_start_tick: f64 align(1),
+    beats_per_bar: f32 align(1),
+    beat_type: f32 align(1),
+    ticks_per_beat: f64 align(1),
+    beats_per_minute: f64 align(1),
+    frame_time: f64 align(1),
+    next_time: f64 align(1),
+    bbt_offset: u32 align(1),
+    audio_frames_per_video_frame: f32 align(1),
+    video_offset: u32 align(1),
+    tick_double: f64 align(1),
+    padding: [5]i32 align(1),
+    unique_2: u64 align(1),
 };
 
 pub const jack_position_t = _jack_position;
@@ -57,135 +68,134 @@ pub const jack_position_t = _jack_position;
 pub const AtomicCounter = extern struct {
     info: extern union {
         scounter: extern struct {
-            fShortVal1: u16,
-            fShortVal2: u16,
-        },
-        fLongVal: u32,
-    },
+            fShortVal1: u16 align(1),
+            fShortVal2: u16 align(1),
+        } align(1),
+        fLongVal: u32 align(1),
+    } align(1),
 };
 
 pub const JackAtomicArrayCounter = extern struct {
     info: extern union {
         scounter: extern struct {
-            fByteVal: [4]u8,
-        },
-        fLongVal: u32,
-    },
+            fByteVal: [4]u8 align(1),
+        } align(1),
+        fLongVal: u32 align(1),
+    } align(1),
 };
 
 pub const JackTimer = extern struct {
-    fFrames: u32,
-    fCurrentWakeup: u64,
-    fCurrentCallback: u64,
-    fNextWakeUp: u64,
-    fPeriodUsecs: f32,
-    fFilterOmega: f32,
-    fInitialized: bool,
+    fFrames: u32 align(1),
+    fCurrentWakeup: u64 align(1),
+    fCurrentCallback: u64 align(1),
+    fNextWakeUp: u64 align(1),
+    fPeriodUsecs: f32 align(1),
+    fFilterOmega: f32 align(1),
+    fInitialized: bool align(1),
 };
 
 pub const JackFrameTimer = extern struct {
-    fState: [2]JackTimer,
-    fCounter: AtomicCounter,
-    fCallWriteCounter: i32,
-    fFirstWakeUp: bool,
+    fState: [2]JackTimer align(1),
+    fCounter: AtomicCounter align(4),
+    fCallWriteCounter: i32 align(1),
+    fFirstWakeUp: bool align(1),
 };
 
 pub const JackTransportEngine = extern struct {
-    fState: [3]jack_position_t,
+    fState: [3]jack_position_t align(1),
     fCounter: JackAtomicArrayCounter,
-    fTransportState: jack_transport_state_t,
-    fTransportCmd: i32,
-    fPreviousCmd: i32,
-    fSyncTimeout: u64,
-    fSyncTimeLeft: i32,
-    fTimeBaseMaster: i32,
-    fPendingPos: bool,
-    fNetworkSync: bool,
-    fConditionnal: bool,
-    fWriteCounter: i32,
+    fTransportState: jack_transport_state_t align(1),
+    fTransportCmd: i32 align(1),
+    fPreviousCmd: i32 align(1),
+    fSyncTimeout: u64 align(1),
+    fSyncTimeLeft: i32 align(1),
+    fTimeBaseMaster: i32 align(1),
+    fPendingPos: bool align(1),
+    fNetworkSync: bool align(1),
+    fConditionnal: bool align(1),
+    fWriteCounter: i32 align(4),
 };
 
 pub const JackEngineControl = extern struct {
     fInfo: jack_shm_info_t,
-    fBufferSize: u32,
-    fSampleRate: u32,
-    fSyncMode: bool,
-    fTemporary: bool,
-    fPeriodUsecs: u64,
-    fTimeOutUsecs: u64,
-    fMaxDelayedUsecs: f32,
-    fXrunDelayedUsecs: f32,
-    fTimeOut: bool,
-    fRealTime: bool,
-    fSavedRealTime: bool,
-    fServerPriority: i32,
-    fClientPriority: i32,
-    fMaxClientPriority: i32,
-    fServerName: [257]u8,
-    fTransport: JackTransportEngine,
-    fClockSource: i32,
-    fDriverNum: i32,
-    fVerbose: bool,
-    // CPU load tracking
-    fPrevCycleTime: u64,
-    fCurCycleTime: u64,
-    fSpareUsecs: u64,
-    fMaxUsecs: u64,
-    fRollingClientUsecs: [32]u64,
-    fRollingClientUsecsCnt: u32,
-    fRollingClientUsecsIndex: u32,
-    fRollingInterval: u32,
-    fCPULoad: f32,
-    fMaxCPULoad: f32,
-    // OSX thread
-    fPeriod: u64,
-    fComputation: u64,
-    fConstraint: u64,
-    fFrameTimer: JackFrameTimer,
+    fBufferSize: u32 align(1),
+    fSampleRate: u32 align(1),
+    fSyncMode: bool align(1),
+    fTemporary: bool align(1),
+    fPeriodUsecs: u64 align(1),
+    fTimeOutUsecs: u64 align(1),
+    fMaxDelayedUsecs: f32 align(1),
+    fXrunDelayedUsecs: f32 align(1),
+    fTimeOut: bool align(1),
+    fRealTime: bool align(1),
+    fSavedRealTime: bool align(1),
+    fServerPriority: i32 align(1),
+    fClientPriority: i32 align(1),
+    fMaxClientPriority: i32 align(1),
+    fServerName: [257]u8 align(1),
+    fTransport: JackTransportEngine align(1),
+    fClockSource: i32 align(1),
+    fDriverNum: i32 align(1),
+    fVerbose: bool align(1),
+    fPrevCycleTime: u64 align(1),
+    fCurCycleTime: u64 align(1),
+    fSpareUsecs: u64 align(1),
+    fMaxUsecs: u64 align(1),
+    fRollingClientUsecs: [32]u64 align(1),
+    fRollingClientUsecsCnt: u32 align(1),
+    fRollingClientUsecsIndex: u32 align(1),
+    fRollingInterval: u32 align(1),
+    fCPULoad: f32 align(1),
+    fMaxCPULoad: f32 align(1),
+    fPeriod: u64 align(1),
+    fComputation: u64 align(1),
+    fConstraint: u64 align(1),
+    fFrameTimer: JackFrameTimer align(1),
+    _padding: [3]u8 align(1),
 };
 
 pub const JackClientControl = extern struct {
     fInfo: jack_shm_info_t,
-    fName: [c.JACK_CLIENT_NAME_SIZE_1]u8,
-    fCallback: [64]bool,
-    fTransportState: u32,
-    fTransportSync: bool,
-    fTransportTimebase: bool,
-    fRefNum: i32,
-    fPID: i32,
-    fActive: bool,
-    fSessionID: u64,
-    fSessionCommand: [c.JACK_SESSION_COMMAND_SIZE]u8,
-    fSessionFlags: i32,
+    fName: [c.JACK_CLIENT_NAME_SIZE_1]u8 align(1),
+    fCallback: [64]bool align(1),
+    fTransportState: u32 align(1),
+    fTransportSync: bool align(1),
+    fTransportTimebase: bool align(1),
+    fRefNum: i32 align(1),
+    fPID: i32 align(1),
+    fActive: bool align(1),
+    fSessionID: u64 align(1),
+    fSessionCommand: [c.JACK_SESSION_COMMAND_SIZE]u8 align(1),
+    fSessionFlags: i32 align(1),
 };
 
 pub const JackClientTiming = extern struct {
-    fSignaledAt: u64,
-    fAwakeAt: u64,
-    fFinishedAt: u64,
-    fStatus: i32,
+    fSignaledAt: u64 align(1),
+    fAwakeAt: u64 align(1),
+    fFinishedAt: u64 align(1),
+    fStatus: i32 align(1),
 };
 
 pub const jack_latency_range_t = extern struct {
-    min: u32,
-    max: u32,
+    min: u32 align(1),
+    max: u32 align(1),
 };
 
 pub const JackPort = extern struct {
-    fTypeId: i32,
-    fFlags: u32,
-    fName: [c.REAL_JACK_PORT_NAME_SIZE_1]u8,
-    fAlias1: [c.REAL_JACK_PORT_NAME_SIZE_1]u8,
-    fAlias2: [c.REAL_JACK_PORT_NAME_SIZE_1]u8,
-    fRefNum: i32,
-    fLatency: u32,
-    fTotalLatency: u32,
-    fPlaybackLatency: jack_latency_range_t,
-    fCaptureLatency: jack_latency_range_t,
-    fMonitorRequests: u8,
-    fInUse: bool,
-    fTied: u32,
-    fBuffer: [c.BUFFER_SIZE_MAX + 8]f32,
+    fTypeId: i32 align(1),
+    fFlags: u32 align(1),
+    fName: [c.REAL_JACK_PORT_NAME_SIZE_1]u8 align(1),
+    fAlias1: [c.REAL_JACK_PORT_NAME_SIZE_1]u8 align(1),
+    fAlias2: [c.REAL_JACK_PORT_NAME_SIZE_1]u8 align(1),
+    fRefNum: i32 align(1),
+    fLatency: u32 align(1),
+    fTotalLatency: u32 align(1),
+    fPlaybackLatency: jack_latency_range_t align(1),
+    fCaptureLatency: jack_latency_range_t align(1),
+    fMonitorRequests: u8 align(1),
+    fInUse: u8 align(1),
+    fTied: u32 align(1),
+    fBuffer: [c.BUFFER_SIZE_MAX + 8]f32 align(1),
 
     pub fn GetBuffer(self: *JackPort) callconv(.C) [*]f32 {
         const addr = @intFromPtr(&self.fBuffer);
@@ -196,11 +206,13 @@ pub const JackPort = extern struct {
 
 pub const JackGraphManager = extern struct {
     fInfo: jack_shm_info_t,
-    fState: [2]ConnectionManagerWrapper,
-    fCounter: AtomicCounter,
-    fPortMax: u32,
-    fClientTiming: [c.CLIENT_NUM]JackClientTiming,
-    fPortArray: [0]JackPort,
+    _pad: [2]u8 align(1),
+    fState: [2]ConnectionManagerWrapper align(1),
+    fCounter: AtomicCounter align(1),
+    fCallWriteCounter: i32 align(1),
+    fPortMax: u32 align(1),
+    fClientTiming: [c.CLIENT_NUM]JackClientTiming align(1),
+    fPortArray: [0]JackPort align(1),
 
     pub fn GetPort(self: *JackGraphManager, index: u32) *JackPort {
         return &self.fPortArray[index];
@@ -208,37 +220,39 @@ pub const JackGraphManager = extern struct {
 };
 
 pub const JackFixedArray = extern struct {
-    fTable: [c.CONNECTION_NUM_FOR_PORT]u16,
-    fCounter: u32,
+    fTable: [c.CONNECTION_NUM_FOR_PORT]u16 align(1),
+    fCounter: u32 align(1),
 };
 
 pub const JackFixedArray1 = extern struct {
-    parent: JackFixedArray,
-    fUsed: bool,
+    parent: JackFixedArray align(1),
+    fUsed: bool align(1),
 };
 
 pub const JackFixedMatrix = extern struct {
-    fTable: [c.CLIENT_NUM][c.CLIENT_NUM]u16,
+    fTable: [c.CLIENT_NUM][c.CLIENT_NUM]u16 align(1),
 };
 
 pub const JackLoopFeedback = extern struct {
-    fTable: [c.CONNECTION_NUM_FOR_PORT][3]u16,
+    fTable: [c.CONNECTION_NUM_FOR_PORT][3]i32 align(1),
 };
 
 pub const JackActivationCount = extern struct {
-    fValue: i32,
-    fCount: i32,
+    fValue: i32 align(1),
+    fCount: i32 align(1),
 };
 
+// With CLIENT_NUM=256 and CONNECTION_NUM_FOR_PORT=2048,
+// ConnectionManager = 0x122B100 which matches JACK2 exactly.
 pub const ConnectionManager = extern struct {
-    fConnection: [c.PORT_NUM_MAX]JackFixedArray,
-    fInputPort: [c.CLIENT_NUM]JackFixedArray1,
-    fOutputPort: [c.CLIENT_NUM]JackFixedArray,
-    fConnectionRef: JackFixedMatrix,
-    fInputCounter: [c.CLIENT_NUM]JackActivationCount,
-    fLoopFeedback: JackLoopFeedback,
+    fConnection: [c.PORT_NUM_MAX]JackFixedArray align(1),
+    fInputPort: [c.CLIENT_NUM]JackFixedArray1 align(1),
+    fOutputPort: [c.CLIENT_NUM]JackFixedArray align(1),
+    fConnectionRef: JackFixedMatrix align(1),
+    fInputCounter: [c.CLIENT_NUM]JackActivationCount align(1),
+    fLoopFeedback: JackLoopFeedback align(1),
 };
 
 pub const ConnectionManagerWrapper = extern struct {
-    inner: ConnectionManager,
+    inner: ConnectionManager align(1),
 };

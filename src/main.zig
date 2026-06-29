@@ -1,5 +1,5 @@
 const std = @import("std");
-const c = @import("constants");
+const c = @import("constants.zig");
 
 const Server = @import("server/server.zig").Server;
 const DummyDriver = @import("drivers/dummy.zig").DummyDriver;
@@ -68,6 +68,8 @@ pub fn main() !void {
     server.engine_control.fSampleRate = sample_rate;
     server.engine_control.fBufferSize = buffer_size;
 
+    try server.open();
+
     const use_alsa = if (driver_name) |name| std.mem.eql(u8, name, "alsa") else false;
 
     if (use_alsa) {
@@ -93,7 +95,13 @@ pub fn main() !void {
         _ = &dummy;
     }
 
-    try server.open();
+    // Reserve refnum 0 for the system/driver client so external clients don't
+    // collide with the driver's ports (created with refnum=0 in attachPorts).
+    _ = server.client_table.allocate("system", true, 0) orelse {
+        std.log.err("Failed to reserve system client refnum 0", .{});
+        return error.SystemClientReservationFailed;
+    };
+
     try server.start();
 
     std.log.info("njackd ready — {s}:{d}Hz/{d} frames", .{ server_name, sample_rate, buffer_size });

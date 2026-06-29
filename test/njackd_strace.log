@@ -1,0 +1,1099 @@
+6194  execve("zig-out/bin/njackd", ["zig-out/bin/njackd", "-d", "dummy", "-v"], 0x7ffeaafa1d50 /* 69 vars */) = 0
+6194  brk(NULL)                         = 0x22359000
+6194  access("/etc/ld.so.preload", R_OK) = -1 ENOENT (No such file or directory)
+6194  openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+6194  fstat(3, {st_mode=S_IFREG|0644, st_size=88447, ...}) = 0
+6194  mmap(NULL, 88447, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7fb73c8af000
+6194  close(3)                          = 0
+6194  openat(AT_FDCWD, "/usr/lib/libudev.so.1", O_RDONLY|O_CLOEXEC) = 3
+6194  read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\0\0\0\0\0\0\0"..., 832) = 832
+6194  fstat(3, {st_mode=S_IFREG|0755, st_size=162184, ...}) = 0
+6194  mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8ad000
+6194  mmap(NULL, 162056, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fb73c885000
+6194  mmap(0x7fb73c88a000, 98304, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x5000) = 0x7fb73c88a000
+6194  mmap(0x7fb73c8a2000, 36864, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1d000) = 0x7fb73c8a2000
+6194  mmap(0x7fb73c8ab000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x26000) = 0x7fb73c8ab000
+6194  close(3)                          = 0
+6194  openat(AT_FDCWD, "/usr/lib/libasound.so.2", O_RDONLY|O_CLOEXEC) = 3
+6194  read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\0\0\0\0\0\0\0"..., 832) = 832
+6194  fstat(3, {st_mode=S_IFREG|0755, st_size=1190632, ...}) = 0
+6194  mmap(NULL, 1193424, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fb73c761000
+6194  mmap(0x7fb73c791000, 659456, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x30000) = 0x7fb73c791000
+6194  mmap(0x7fb73c832000, 303104, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xd1000) = 0x7fb73c832000
+6194  mmap(0x7fb73c87c000, 36864, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x11a000) = 0x7fb73c87c000
+6194  close(3)                          = 0
+6194  openat(AT_FDCWD, "/usr/lib/libpthread.so.0", O_RDONLY|O_CLOEXEC) = 3
+6194  read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\0\0\0\0\0\0\0"..., 832) = 832
+6194  fstat(3, {st_mode=S_IFREG|0755, st_size=14472, ...}) = 0
+6194  mmap(NULL, 16400, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fb73c75c000
+6194  mmap(0x7fb73c75d000, 4096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1000) = 0x7fb73c75d000
+6194  mmap(0x7fb73c75e000, 4096, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7fb73c75e000
+6194  mmap(0x7fb73c75f000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7fb73c75f000
+6194  close(3)                          = 0
+6194  openat(AT_FDCWD, "/usr/lib/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+6194  read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\300\255\2\0\0\0\0\0"..., 832) = 832
+6194  pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+6194  fstat(3, {st_mode=S_IFREG|0755, st_size=12699128, ...}) = 0
+6194  pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+6194  mmap(NULL, 2006680, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fb73c572000
+6194  mmap(0x7fb73c59a000, 1413120, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x28000) = 0x7fb73c59a000
+6194  mmap(0x7fb73c6f3000, 352256, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x181000) = 0x7fb73c6f3000
+6194  mmap(0x7fb73c749000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1d6000) = 0x7fb73c749000
+6194  mmap(0x7fb73c74f000, 52888, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7fb73c74f000
+6194  close(3)                          = 0
+6194  openat(AT_FDCWD, "/usr/lib/libm.so.6", O_RDONLY|O_CLOEXEC) = 3
+6194  read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\0\0\0\0\0\0\0"..., 832) = 832
+6194  fstat(3, {st_mode=S_IFREG|0755, st_size=3728016, ...}) = 0
+6194  mmap(NULL, 970776, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fb73c484000
+6194  mmap(0x7fb73c495000, 503808, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x11000) = 0x7fb73c495000
+6194  mmap(0x7fb73c510000, 393216, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x8c000) = 0x7fb73c510000
+6194  mmap(0x7fb73c570000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xeb000) = 0x7fb73c570000
+6194  close(3)                          = 0
+6194  mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c482000
+6194  mmap(NULL, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c47f000
+6194  arch_prctl(ARCH_SET_FS, 0x7fb73c47f7c0) = 0
+6194  set_tid_address(0x7fb73c47fa90)   = 6194
+6194  set_robust_list(0x7fb73c47faa0, 24) = 0
+6194  rseq(0x7fb73c47f680, 0x21, 0, 0x53053053) = 0
+6194  mprotect(0x7fb73c749000, 16384, PROT_READ) = 0
+6194  mprotect(0x7fb73c570000, 4096, PROT_READ) = 0
+6194  mprotect(0x7fb73c75f000, 4096, PROT_READ) = 0
+6194  mprotect(0x7fb73c87c000, 32768, PROT_READ) = 0
+6194  mprotect(0x7fb73c8ab000, 4096, PROT_READ) = 0
+6194  mprotect(0x115e000, 24576, PROT_READ) = 0
+6194  mprotect(0x7fb73c900000, 8192, PROT_READ) = 0
+6194  prlimit64(0, RLIMIT_STACK, NULL, {rlim_cur=8192*1024, rlim_max=RLIM64_INFINITY}) = 0
+6194  munmap(0x7fb73c8af000, 88447)     = 0
+6194  prlimit64(0, RLIMIT_STACK, NULL, {rlim_cur=8192*1024, rlim_max=RLIM64_INFINITY}) = 0
+6194  prlimit64(0, RLIMIT_STACK, {rlim_cur=16384*1024, rlim_max=RLIM64_INFINITY}, NULL) = 0
+6194  rt_sigaction(SIGSEGV, {sa_handler=0x109a990, sa_mask=[], sa_flags=SA_RESTORER|SA_RESTART|SA_RESETHAND|SA_SIGINFO|0xffffffff00000000, sa_restorer=0x7fb73c5b2110}, NULL, 8) = 0
+6194  rt_sigaction(SIGILL, {sa_handler=0x109a990, sa_mask=[], sa_flags=SA_RESTORER|SA_RESTART|SA_RESETHAND|SA_SIGINFO|0xffffffff00000000, sa_restorer=0x7fb73c5b2110}, NULL, 8) = 0
+6194  rt_sigaction(SIGBUS, {sa_handler=0x109a990, sa_mask=[], sa_flags=SA_RESTORER|SA_RESTART|SA_RESETHAND|SA_SIGINFO|0xffffffff00000000, sa_restorer=0x7fb73c5b2110}, NULL, 8) = 0
+6194  rt_sigaction(SIGFPE, {sa_handler=0x109a990, sa_mask=[], sa_flags=SA_RESTORER|SA_RESTART|SA_RESETHAND|SA_SIGINFO|0xffffffff00000000, sa_restorer=0x7fb73c5b2110}, NULL, 8) = 0
+6194  rt_sigaction(SIGPIPE, {sa_handler=0x105d8d0, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x7fb73c5b2110}, NULL, 8) = 0
+6194  gettid()                          = 6194
+6194  write(2, "info: njackd v0.1.0 \342\200\224 NeoJack "..., 39) = 39
+6194  mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8c4000
+6194  mmap(0x7fb73c8c5000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8c3000
+6194  msync(0x7ffff4c0b000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0b000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0b000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0b000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0c000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0c000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0c000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0c000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  mmap(0x7fb73c8c4000, 103546880, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb7361bf000
+6194  msync(0x7ffff4c01000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c01000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c01000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c01000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c01000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c01000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c01000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c01000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c01000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c01000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c01000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c01000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0c000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  mmap(0x7fb73c47f000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8c2000
+6194  mmap(0x7fb73c8c3000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8c1000
+6194  mmap(0x7fb73c8c2000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8c0000
+6194  msync(0x7ffff4c0b000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0b000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0b000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0b000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0b000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0c000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0c000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0c000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0c000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  mmap(0x7fb73c8c1000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8bf000
+6194  mmap(0x7fb73c8c0000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8bd000
+6194  msync(0x7ffff4c0b000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0b000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0b000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0b000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0b000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0c000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0c000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0c000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c0c000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  getpid()                          = 6194
+6194  write(2, "info: Zig sizes: JackGraphManage"..., 158) = 158
+6194  geteuid()                         = 1000
+6194  faccessat2(AT_FDCWD, "/dev/shm/jack_default_1000_0", F_OK, 0) = -1 ENOENT (No such file or directory)
+6194  socket(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC, 0) = 3
+6194  bind(3, {sa_family=AF_UNIX, sun_path="/dev/shm/jack_default_1000_0"}, 110) = 0
+6194  listen(3, 128)                    = 0
+6194  getsockname(3, {sa_family=AF_UNIX, sun_path="/dev/shm/jack_default_1000_0"}, [110 => 31]) = 0
+6194  openat(AT_FDCWD, "/dev/shm/jack-shm-registry", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0666) = 4
+6194  ftruncate(4, 70744)               = 0
+6194  mmap(NULL, 70744, PROT_READ|PROT_WRITE, MAP_SHARED, 4, 0) = 0x7fb7361ad000
+6194  flock(4, LOCK_EX)                 = 0
+6194  write(2, "info: Registry RESET: magic=0 (w"..., 160) = 160
+6194  flock(4, LOCK_UN)                 = 0
+6194  mmap(0x7fb73c8bf000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8bc000
+6194  mmap(0x7fb73c8bd000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8b8000
+6194  msync(0x7ffff4c36000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c36000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  openat(AT_FDCWD, "/dev/shm/jack_default_6194_shm_0", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0644) = 5
+6194  ftruncate(5, 1200)                = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  munmap(0x7fb73c8bc000, 4096)      = 0
+6194  munmap(0x7fb73c8b8000, 16384)     = 0
+6194  mmap(NULL, 1200, PROT_READ|PROT_WRITE, MAP_SHARED, 5, 0) = 0x7fb73c8bc000
+6194  mmap(0x7fb73c8bc000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8bb000
+6194  mmap(0x7fb73c8bc000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8b7000
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  flock(4, LOCK_EX)                 = 0
+6194  getuid()                          = 1000
+6194  flock(4, LOCK_UN)                 = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  munmap(0x7fb73c8bb000, 4096)      = 0
+6194  munmap(0x7fb73c8b7000, 16384)     = 0
+6194  mmap(0x7fb73c8bb000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8bb000
+6194  mmap(0x7fb73c8bc000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8b7000
+6194  msync(0x7ffff4c36000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c36000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  openat(AT_FDCWD, "/dev/shm/jack_default_6194_shm_1", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0644) = 6
+6194  ftruncate(6, 107335962)           = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  munmap(0x7fb73c8bb000, 4096)      = 0
+6194  munmap(0x7fb73c8b7000, 16384)     = 0
+6194  mmap(NULL, 107335962, PROT_READ|PROT_WRITE, MAP_SHARED, 6, 0) = 0x7fb72fb4f000
+6194  mmap(0x7fb73c8bb000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8bb000
+6194  mmap(0x7fb73c8bc000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8b7000
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  flock(4, LOCK_EX)                 = 0
+6194  getuid()                          = 1000
+6194  flock(4, LOCK_UN)                 = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  munmap(0x7fb73c8bb000, 4096)      = 0
+6194  munmap(0x7fb73c8b7000, 16384)     = 0
+6194  getpid()                          = 6194
+6194  mmap(0x7fb73c8bb000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8bb000
+6194  mmap(0x7fb73c8bc000, 102400, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb72fb36000
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  openat(AT_FDCWD, "/tmp/njackd.pid", O_WRONLY|O_CREAT|O_TRUNC|O_CLOEXEC, 0666) = 7
+6194  write(7, "6194", 4)               = 4
+6194  close(7)                          = 0
+6194  write(2, "info: SHM segments created and r"..., 70) = 70
+6194  getrandom("\xf4\x39\x50\x44\xa5\xa1\xa0\xc5", 8, GRND_NONBLOCK) = 8
+6194  brk(NULL)                         = 0x22359000
+6194  brk(0x2237a000)                   = 0x2237a000
+6194  openat(AT_FDCWD, "/etc/udev/udev.conf", O_RDONLY|O_CLOEXEC) = 7
+6194  fstat(7, {st_mode=S_IFREG|0644, st_size=215, ...}) = 0
+6194  read(7, "# see udev.conf(5) for details\n#"..., 4096) = 215
+6194  read(7, "", 4096)                 = 0
+6194  close(7)                          = 0
+6194  access("/run/udev/control", F_OK) = 0
+6194  socket(AF_NETLINK, SOCK_RAW|SOCK_CLOEXEC|SOCK_NONBLOCK, NETLINK_KOBJECT_UEVENT) = 7
+6194  setsockopt(7, SOL_SOCKET, SO_ATTACH_FILTER, {len=8, filter=0x7ffff4c371e0}, 16) = 0
+6194  bind(7, {sa_family=AF_NETLINK, nl_pid=0, nl_groups=0x000002}, 12) = 0
+6194  getsockname(7, {sa_family=AF_NETLINK, nl_pid=6194, nl_groups=0x000002}, [12]) = 0
+6194  setsockopt(7, SOL_SOCKET, SO_PASSCRED, [1], 4) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  munmap(0x7fb73c8bb000, 4096)      = 0
+6194  munmap(0x7fb72fb36000, 102400)    = 0
+6194  write(2, "debug: dummy attach: refnum=0 gm"..., 4071) = 4071
+6194  write(2, "shm.layouts.JackClientTiming{ .f"..., 2739) = 2739
+6194  write(2, "debug: allocatePort called: refn"..., 68) = 68
+6194  write(2, "debug: allocatePort called: refn"..., 68) = 68
+6194  write(2, "debug: allocatePort called: refn"..., 69) = 69
+6194  write(2, "debug: allocatePort called: refn"..., 69) = 69
+6194  write(2, "debug: dummy attach result: true"..., 33) = 33
+6194  write(2, "debug: SHM port[0]: fInUse=0 fFl"..., 45) = 45
+6194  write(2, "debug: SHM port[1]: fInUse=1 fFl"..., 62) = 62
+6194  write(2, "debug: SHM port[2]: fInUse=1 fFl"..., 62) = 62
+6194  write(2, "debug: SHM port[3]: fInUse=1 fFl"..., 63) = 63
+6194  write(2, "info: Dummy driver started (2 ch"..., 40) = 40
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  rt_sigaction(SIGRT_1, {sa_handler=0x7fb73c5fcfa0, sa_mask=[], sa_flags=SA_RESTORER|SA_ONSTACK|SA_RESTART|SA_SIGINFO, sa_restorer=0x7fb73c5b2110}, NULL, 8) = 0
+6194  rt_sigprocmask(SIG_UNBLOCK, [RTMIN RT_1], NULL, 8) = 0
+6194  mmap(NULL, 16781312, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0) = 0x7fb72eb4e000
+6194  mprotect(0x7fb72eb4f000, 16777216, PROT_READ|PROT_WRITE) = 0
+6194  rt_sigprocmask(SIG_BLOCK, ~[], [], 8) = 0
+6194  clone3({flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, child_tid=0x7fb72fb4e990, parent_tid=0x7fb72fb4e990, exit_signal=0, stack=0x7fb72eb4e000, stack_size=0xffff00, tls=0x7fb72fb4e6c0} => {parent_tid=[6200]}, 88) = 6200
+6200  rseq(0x7fb72fb4e580, 0x21, 0, 0x53053053 <unfinished ...>
+6194  rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+6200  <... rseq resumed>)               = 0
+6194  <... rt_sigprocmask resumed>, NULL, 8) = 0
+6200  set_robust_list(0x7fb72fb4e9a0, 24 <unfinished ...>
+6194  mmap(NULL, 16781312, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0 <unfinished ...>
+6200  <... set_robust_list resumed>)    = 0
+6194  <... mmap resumed>)               = 0x7fb72db4d000
+6200  rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+6194  mprotect(0x7fb72db4e000, 16777216, PROT_READ|PROT_WRITE <unfinished ...>
+6200  <... rt_sigprocmask resumed>, NULL, 8) = 0
+6194  <... mprotect resumed>)           = 0
+6194  rt_sigprocmask(SIG_BLOCK, ~[], [], 8) = 0
+6200  gettid( <unfinished ...>
+6194  clone3({flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, child_tid=0x7fb72eb4d990, parent_tid=0x7fb72eb4d990, exit_signal=0, stack=0x7fb72db4d000, stack_size=0xffff00, tls=0x7fb72eb4d6c0} <unfinished ...>
+6200  <... gettid resumed>)             = 6200
+6194  <... clone3 resumed> => {parent_tid=[6201]}, 88) = 6201
+6194  rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+6201  rseq(0x7fb72eb4d580, 0x21, 0, 0x53053053 <unfinished ...>
+6194  <... rt_sigprocmask resumed>, NULL, 8) = 0
+6194  mmap(NULL, 16781312, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0 <unfinished ...>
+6201  <... rseq resumed>)               = 0
+6194  <... mmap resumed>)               = 0x7fb72cb4c000
+6194  mprotect(0x7fb72cb4d000, 16777216, PROT_READ|PROT_WRITE <unfinished ...>
+6201  set_robust_list(0x7fb72eb4d9a0, 24 <unfinished ...>
+6194  <... mprotect resumed>)           = 0
+6194  rt_sigprocmask(SIG_BLOCK, ~[] <unfinished ...>
+6201  <... set_robust_list resumed>)    = 0
+6194  <... rt_sigprocmask resumed>, [], 8) = 0
+6194  clone3({flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, child_tid=0x7fb72db4c990, parent_tid=0x7fb72db4c990, exit_signal=0, stack=0x7fb72cb4c000, stack_size=0xffff00, tls=0x7fb72db4c6c0} <unfinished ...>
+6201  rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+6194  <... clone3 resumed> => {parent_tid=[6202]}, 88) = 6202
+6202  rseq(0x7fb72db4c580, 0x21, 0, 0x53053053 <unfinished ...>
+6194  rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+6201  gettid( <unfinished ...>
+6194  <... rt_sigprocmask resumed>, NULL, 8) = 0
+6202  <... rseq resumed>)               = 0
+6201  <... gettid resumed>)             = 6201
+6194  write(2, "info: njackd ready \342\200\224 default:4"..., 50 <unfinished ...>
+6202  set_robust_list(0x7fb72db4c9a0, 24 <unfinished ...>
+6201  futex(0x1164b4c, FUTEX_WAIT_PRIVATE, 3, NULL <unfinished ...>
+6194  <... write resumed>)              = 50
+6202  <... set_robust_list resumed>)    = 0
+6194  futex(0x1164b4c, FUTEX_WAKE_PRIVATE, 1 <unfinished ...>
+6202  rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+6194  <... futex resumed>)              = 1
+6201  <... futex resumed>)              = 0
+6194  write(2, "info: Press Ctrl+C to stop\n", 27 <unfinished ...>
+6202  <... rt_sigprocmask resumed>, NULL, 8) = 0
+6194  <... write resumed>)              = 27
+6201  futex(0x1164b4c, FUTEX_WAIT_PRIVATE, 3, NULL <unfinished ...>
+6194  futex(0x1164b4c, FUTEX_WAKE_PRIVATE, 1 <unfinished ...>
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... futex resumed>)              = 0
+6201  <... futex resumed>)              = -1 EAGAIN (Resource temporarily unavailable)
+6194  rt_sigaction(SIGINT, {sa_handler=0x105ba10, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x7fb73c5b2110} <unfinished ...>
+6201  write(2, "info: Device monitor started\n", 29 <unfinished ...>
+6194  <... rt_sigaction resumed>, NULL, 8) = 0
+6201  <... write resumed>)              = 29
+6194  rt_sigaction(SIGTERM, {sa_handler=0x105ba10, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x7fb73c5b2110} <unfinished ...>
+6201  futex(0x1164b4c, FUTEX_WAKE_PRIVATE, 1 <unfinished ...>
+6194  <... rt_sigaction resumed>, NULL, 8) = 0
+6201  <... futex resumed>)              = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6201  poll([{fd=7, events=POLLIN}], 1, 500 <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000}, 0x7ffff4c38418) = 0
+6202  <... poll resumed>)               = 0 (Timeout)
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6201  <... poll resumed>)               = 0 (Timeout)
+6201  poll([{fd=7, events=POLLIN}], 1, 500 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6202  <... poll resumed>)               = 0 (Timeout)
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6202  <... poll resumed>)               = 0 (Timeout)
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6202  <... poll resumed>)               = 0 (Timeout)
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6202  <... poll resumed>)               = 0 (Timeout)
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6202  <... poll resumed>)               = 0 (Timeout)
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6201  <... poll resumed>)               = 0 (Timeout)
+6201  poll([{fd=7, events=POLLIN}], 1, 500 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6202  <... poll resumed>)               = 0 (Timeout)
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6202  <... poll resumed>)               = 0 (Timeout)
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6202  <... poll resumed>)               = 0 (Timeout)
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6201  <... poll resumed>)               = 0 (Timeout)
+6201  poll([{fd=7, events=POLLIN}], 1, 500 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6202  <... poll resumed>)               = 0 (Timeout)
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6202  <... poll resumed>)               = 0 (Timeout)
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6201  <... poll resumed>)               = 0 (Timeout)
+6201  poll([{fd=7, events=POLLIN}], 1, 500 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6201  <... poll resumed>)               = 0 (Timeout)
+6201  poll([{fd=7, events=POLLIN}], 1, 500 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6201  <... poll resumed>)               = 0 (Timeout)
+6201  poll([{fd=7, events=POLLIN}], 1, 500 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6201  <... poll resumed>)               = 0 (Timeout)
+6201  poll([{fd=7, events=POLLIN}], 1, 500 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6201  <... poll resumed>)               = 0 (Timeout)
+6201  poll([{fd=7, events=POLLIN}], 1, 500 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6201  <... poll resumed>)               = 0 (Timeout)
+6201  poll([{fd=7, events=POLLIN}], 1, 500 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100) = 1 ([{fd=3, revents=POLLIN}])
+6202  accept4(3, {sa_family=AF_UNIX}, [110 => 2], SOCK_CLOEXEC) = 8
+6202  read(8, "", 4)                    = 0
+6202  close(8)                          = 0
+6202  poll([{fd=3, events=POLLIN}], 1, 100) = 1 ([{fd=3, revents=POLLIN}])
+6202  accept4(3, {sa_family=AF_UNIX}, [110 => 2], SOCK_CLOEXEC) = 8
+6202  read(8, "\26\0\0\0", 4)           = 4
+6202  gettid()                          = 6202
+6202  write(2, "debug: recv ftype=22\n", 21) = 21
+6202  write(2, "debug: handleClientCheck\n", 25) = 25
+6202  read(8, "U\0\0\0", 4)             = 4
+6202  read(8, "lsp\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 65) = 65
+6202  read(8, "\t\0\0\0", 4)            = 4
+6202  read(8, "\1\0\0\0", 4)            = 4
+6202  read(8, "\0\0\0\0\0\0\0\0", 8)    = 8
+6202  read(8, "\1\0\0\0", 4)            = 4
+6202  write(8, "\0\0\0\0", 4)           = 4
+6202  write(8, "lsp\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 65) = 65
+6202  write(8, "\0\0\0\0", 4)           = 4
+6202  read(8, "\27\0\0\0", 4)           = 4
+6202  write(2, "debug: recv ftype=23\n", 21) = 21
+6202  read(8, "M\0\0\0", 4)             = 4
+6202  read(8, "c\30\0\0", 4)            = 4
+6202  read(8, "\0\0\0\0\0\0\0\0", 8)    = 8
+6202  read(8, "lsp\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 65) = 65
+6202  mmap(0x7fb72fb4f000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8bb000
+6202  mmap(0x7fb73c8bc000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8b7000
+6202  msync(0x7fb72db49000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db49000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  openat(AT_FDCWD, "/dev/shm/jack_default_6194_shm_3", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0644) = 9
+6202  ftruncate(9, 426)                 = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  munmap(0x7fb73c8bb000, 4096)      = 0
+6202  munmap(0x7fb73c8b7000, 16384)     = 0
+6202  mmap(NULL, 426, PROT_READ|PROT_WRITE, MAP_SHARED, 9, 0) = 0x7fb73c8bb000
+6202  flock(4, LOCK_EX)                 = 0
+6202  getuid()                          = 1000
+6202  flock(4, LOCK_UN)                 = 0
+6202  geteuid()                         = 1000
+6202  write(2, "info: NamedFutex::Allocate name "..., 60) = 60
+6202  openat(AT_FDCWD, "/dev/shm/jack_sem.1000_default_lsp", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0777) = 10
+6202  ftruncate(10, 12)                 = 0
+6202  mmap(NULL, 12, PROT_READ|PROT_WRITE, MAP_SHARED, 10, 0) = 0x7fb73c8ba000
+6202  geteuid( <unfinished ...>
+6200  futex(0x7ffff4c3ce14, FUTEX_WAIT_PRIVATE, 3, NULL <unfinished ...>
+6202  <... geteuid resumed>)            = 1000
+6202  mmap(0x7fb73c8bb000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8b9000
+6202  mmap(0x7fb73c8ba000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8b5000
+6202  msync(0x7fb72db49000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  socket(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC, 0) = 11
+6202  connect(11, {sa_family=AF_UNIX, sun_path="/dev/shm/jack_lsp_1000_1"}, 110) = -1 ENOENT (No such file or directory)
+6202  close(11)                         = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  munmap(0x7fb73c8b9000, 4096)      = 0
+6202  munmap(0x7fb73c8b5000, 16384)     = 0
+6202  futex(0x7ffff4c3ce14, FUTEX_WAKE_PRIVATE, 1) = 1
+6200  <... futex resumed>)              = 0
+6202  write(8, "\0\0\0\0", 4 <unfinished ...>
+6200  futex(0x7ffff4c3ce14, FUTEX_WAKE_PRIVATE, 1 <unfinished ...>
+6202  <... write resumed>)              = 4
+6200  <... futex resumed>)              = 0
+6202  write(8, "\0\0\0\0", 4)           = 4
+6202  write(8, "\3\0\0\0", 4)           = 4
+6202  write(8, "\1\0\0\0", 4)           = 4
+6202  write(2, "info: Client opened: lsp (refnum"..., 36) = 36
+6202  read(8, "\30\0\0\0", 4)           = 4
+6202  write(2, "debug: recv ftype=24\n", 21) = 21
+6202  write(2, "debug: handleClientClose: readin"..., 39) = 39
+6202  read(8, "\4\0\0\0", 4)            = 4
+6202  read(8, "\1\0\0\0", 4)            = 4
+6202  write(2, "debug: handleClientClose: got fR"..., 40) = 40
+6202  write(2, "debug: handleClientClose: sendin"..., 55) = 55
+6202  write(8, "\0\0\0\0", 4)           = 4
+6202  write(2, "debug: handleClientClose: freein"..., 41) = 41
+6202  write(2, "debug: handleClientClose: unlink"..., 50) = 50
+6202  mmap(0x7fb73c8b9000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8b9000
+6202  mmap(0x7fb73c8ba000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8b5000
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  unlink("/dev/shm/jack_default_6194_shm_3") = -1 ENOENT (No such file or directory)
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4a000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  msync(0x7fb72db4b000, 4096, MS_ASYNC) = 0
+6202  munmap(0x7fb73c8b9000, 4096)      = 0
+6202  munmap(0x7fb73c8b5000, 16384)     = 0
+6202  write(2, "debug: handleClientClose: cleari"..., 52) = 52
+6202  flock(4, LOCK_EX)                 = 0
+6202  flock(4, LOCK_UN)                 = 0
+6202  write(2, "debug: handleClientClose: destro"..., 54) = 54
+6202  munmap(0x7fb73c8ba000, 12)        = 0
+6202  close(10)                         = 0
+6202  unlink("/dev/shm/jack_sem.1000_default_lsp") = 0
+6202  write(2, "info: Client closed: refnum 1\n", 30) = 30
+6202  write(2, "debug: handleClientClose: notify"..., 44) = 44
+6202  read(8, "", 4)                    = 0
+6202  close(8)                          = 0
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=100000000}, {tv_sec=0, tv_nsec=67386944}) = ? ERESTART_RESTARTBLOCK (Interrupted by signal)
+6194  --- SIGTERM {si_signo=SIGTERM, si_code=SI_USER, si_pid=6246, si_uid=1000} ---
+6194  rt_sigreturn({mask=[]})           = -1 EINTR (Interrupted system call)
+6194  clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=0, tv_nsec=67386944} <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6194  <... clock_nanosleep resumed>, 0x7ffff4c38418) = 0
+6194  write(2, "info: Stopping...\n", 18) = 18
+6194  write(2, "info: Dummy driver stopped\n", 27 <unfinished ...>
+6200  mmap(NULL, 134217728, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb724a00000
+6200  munmap(0x7fb724a00000, 56623104 <unfinished ...>
+6194  <... write resumed>)              = 27
+6200  <... munmap resumed>)             = 0
+6194  futex(0x7ffff4c3ed2c, FUTEX_WAKE_PRIVATE, 1 <unfinished ...>
+6200  munmap(0x7fb72c000000, 10485760 <unfinished ...>
+6194  <... futex resumed>)              = 0
+6200  <... munmap resumed>)             = 0
+6194  futex(0x7fb72fb4e990, FUTEX_WAIT_BITSET|FUTEX_CLOCK_REALTIME, 6200, NULL, FUTEX_BITSET_MATCH_ANY <unfinished ...>
+6200  mprotect(0x7fb728000000, 135168, PROT_READ|PROT_WRITE) = 0
+6200  rt_sigprocmask(SIG_BLOCK, ~[RT_1], NULL, 8) = 0
+6200  madvise(0x7fb72eb4e000, 16756736, MADV_DONTNEED) = 0
+6200  exit(0)                           = ?
+6194  <... futex resumed>)              = 0
+6200  +++ exited with 0 +++
+6194  futex(0x7fb72eb4d990, FUTEX_WAIT_BITSET|FUTEX_CLOCK_REALTIME, 6201, NULL, FUTEX_BITSET_MATCH_ANY <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  poll([{fd=3, events=POLLIN}], 1, 100 <unfinished ...>
+6201  <... poll resumed>)               = 0 (Timeout)
+6201  write(2, "info: Device monitor stopped\n", 29) = 29
+6201  rt_sigprocmask(SIG_BLOCK, ~[RT_1], NULL, 8) = 0
+6201  madvise(0x7fb72db4d000, 16756736, MADV_DONTNEED) = 0
+6201  exit(0)                           = ?
+6194  <... futex resumed>)              = 0
+6201  +++ exited with 0 +++
+6194  futex(0x7fb72db4c990, FUTEX_WAIT_BITSET|FUTEX_CLOCK_REALTIME, 6202, NULL, FUTEX_BITSET_MATCH_ANY <unfinished ...>
+6202  <... poll resumed>)               = 0 (Timeout)
+6202  rt_sigprocmask(SIG_BLOCK, ~[RT_1], NULL, 8) = 0
+6202  madvise(0x7fb72cb4c000, 16756736, MADV_DONTNEED) = 0
+6202  exit(0)                           = ?
+6194  <... futex resumed>)              = 0
+6202  +++ exited with 0 +++
+6194  munmap(0x7fb72eb4e000, 16781312)  = 0
+6194  write(2, "info: njackd stopped\n", 21) = 21
+6194  munmap(0x7fb73c8bc000, 1200)      = 0
+6194  close(5)                          = 0
+6194  mmap(0x7fb73c8b9000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8b9000
+6194  mmap(0x7fb73c8ba000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8b5000
+6194  msync(0x7ffff4c36000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c36000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  unlink("/dev/shm/jack_default_6194_shm_0") = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  munmap(0x7fb73c8b9000, 4096)      = 0
+6194  munmap(0x7fb73c8b5000, 16384)     = 0
+6194  munmap(0x7fb72fb4f000, 107335962) = 0
+6194  close(6)                          = 0
+6194  mmap(0x7fb73c8b9000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8b9000
+6194  mmap(0x7fb73c8ba000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb73c8b5000
+6194  msync(0x7ffff4c36000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c36000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  unlink("/dev/shm/jack_default_6194_shm_1") = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  munmap(0x7fb73c8b9000, 4096)      = 0
+6194  munmap(0x7fb73c8b5000, 16384)     = 0
+6194  munmap(0x7fb7361ad000, 70744)     = 0
+6194  close(4)                          = 0
+6194  unlink("/dev/shm/jack-shm-registry") = 0
+6194  close(7)                          = 0
+6194  shutdown(3, SHUT_RDWR)            = 0
+6194  close(3)                          = 0
+6194  geteuid()                         = 1000
+6194  unlinkat(AT_FDCWD, "/dev/shm/jack_default_1000_0", 0) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  munmap(0x7fb7361bf000, 103546880) = 0
+6194  munmap(0x7fb73c8c3000, 4096)      = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  munmap(0x7fb73c8bf000, 4096)      = 0
+6194  munmap(0x7fb73c8bd000, 8192)      = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c37000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c38000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  msync(0x7ffff4c48000, 4096, MS_ASYNC) = 0
+6194  munmap(0x7fb73c8c2000, 4096)      = 0
+6194  munmap(0x7fb73c8c1000, 4096)      = 0
+6194  munmap(0x7fb73c8c4000, 4096)      = 0
+6194  munmap(0x7fb73c8c0000, 4096)      = 0
+6194  exit_group(0)                     = ?
+6194  +++ exited with 0 +++

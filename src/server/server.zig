@@ -1,5 +1,6 @@
 const std = @import("std");
-const c = @import("constants");
+const c = @import("../constants.zig");
+const request = @import("../protocol/request.zig");
 
 const Engine = @import("../engine/engine.zig").Engine;
 const EngineControl = @import("../engine/engine.zig").EngineControl;
@@ -88,7 +89,7 @@ pub const Server = struct {
         port_max: u32,
     ) !Self {
         const graph_mgr = try allocator.create(GraphManager);
-        graph_mgr.* = try GraphManager.init(allocator, port_max);
+        graph_mgr.* = try GraphManager.init(allocator, port_max, null);
 
         const eng_ctrl = try allocator.create(EngineControl);
         eng_ctrl.* = EngineControl.init(sync, temporary, timeout, rt, priority, verbose, server_name);
@@ -98,7 +99,6 @@ pub const Server = struct {
 
         var synchro_table: [c.CLIENT_NUM]Synchro = undefined;
         for (&synchro_table) |*s| s.* = Synchro.init();
-        const pid = std.os.linux.getpid();
 
         return Self{
             .allocator = allocator,
@@ -114,7 +114,7 @@ pub const Server = struct {
             .drivers_mutex = std.Thread.Mutex{},
             .rt_thread = null,
             .running = false,
-            .shm_helper = SharedMemory.init(allocator, server_name, pid),
+        .shm_helper = SharedMemory.init(allocator, server_name, std.os.linux.getpid()),
             .shm_engine = null,
             .shm_graph = null,
             .shm_clients = [_]?ShmSegment{null} ** c.CLIENT_NUM,
@@ -170,13 +170,13 @@ pub const Server = struct {
     }
 
     fn registerShmSegment(self: *Self, index: i32, name: []const u8, size: usize) !void {
-        const full_name = try std.fmt.allocPrint(self.allocator, "/jack_{s}_{d}_{s}", .{ self.shm_helper.server_name, self.shm_helper.pid, name });
+        const full_name = try std.fmt.allocPrint(self.allocator, "/jack_{s}_{d}_shm_{s}", .{ self.shm_helper.server_name, self.shm_helper.pid, name });
         defer self.allocator.free(full_name);
         try registry.registerShmSegment(index, full_name, size);
     }
 
-    pub fn registerClientShmSegment(server_name: []const u8, pid: i32, index: i32, seg_name: []const u8, size: usize) void {
-        const full_name = std.fmt.allocPrint(std.heap.page_allocator, "/jack_{s}_{d}_{s}", .{ server_name, pid, seg_name }) catch return;
+    pub fn registerClientShmSegment(server_name: []const u8, uid: i32, index: i32, seg_name: []const u8, size: usize) void {
+        const full_name = std.fmt.allocPrint(std.heap.page_allocator, "/jack_{s}_{d}_shm_{s}", .{ server_name, uid, seg_name }) catch return;
         defer std.heap.page_allocator.free(full_name);
         registry.registerShmSegment(index, full_name, size) catch {};
     }
@@ -196,7 +196,7 @@ pub const Server = struct {
 
         @memset(ec_ptr[0..ec_size], 0);
         const ec_shm: *shm.JackEngineControl = @ptrCast(@alignCast(ec_ptr));
-        ec_shm.fInfo = .{ .index = SHM_ENGINE, .size = @intCast(ec_size), .attached = 0 };
+        ec_shm.fInfo = .{ .index = @intCast(SHM_ENGINE), .size = @intCast(ec_size), .ptr = .{ .attached_at = null } };
         ec_shm.fBufferSize = self.engine_control.fBufferSize;
         ec_shm.fSampleRate = self.engine_control.fSampleRate;
         ec_shm.fSyncMode = self.engine_control.fSyncMode;
@@ -224,7 +224,7 @@ pub const Server = struct {
 
         @memset(gm_ptr[0..gm_size], 0);
         const gm_shm: *shm.JackGraphManager = @ptrCast(@alignCast(gm_ptr));
-        gm_shm.fInfo = .{ .index = SHM_GRAPH, .size = @intCast(gm_size), .attached = 0 };
+        gm_shm.fInfo = .{ .index = @intCast(SHM_GRAPH), .size = @intCast(gm_size), .ptr = .{ .attached_at = null } };
         gm_shm.fPortMax = self.graph_manager.fPortMax;
 
         // Init EMPTY sentinel as first entry in all connection tables
@@ -240,14 +240,18 @@ pub const Server = struct {
             }
         }
         self.graph_shm = gm_shm;
+        self.graph_manager.gm_shm = gm_shm;
+        self.graph_manager.initShmState();
 
         try self.registerShmSegment(SHM_GRAPH, "1", gm_size);
 
         // Copy local ports to SHM
-        const shm_ports: [*]shm.JackPort = @ptrCast(&gm_shm.fPortArray);
+        const base_addr = @intFromPtr(gm_shm);
+        const port_offset = @offsetOf(shm.JackGraphManager, "fPortArray");
         for (0..self.graph_manager.fPortMax) |i| {
             const local = self.graph_manager.getPort(@intCast(i));
-            const dst: *shm.JackPort = &shm_ports[i];
+            const port_addr = base_addr + port_offset + i * @sizeOf(shm.JackPort);
+            const dst: *shm.JackPort = @ptrFromInt(port_addr);
             @memcpy(@as([*]u8, @ptrCast(dst))[0..@sizeOf(shm.JackPort)], @as([*]u8, @ptrCast(local))[0..@sizeOf(shm.JackPort)]);
         }
     }
@@ -277,10 +281,23 @@ pub const Server = struct {
     }
 
     pub fn open(self: *Self) !void {
+        std.log.info("Zig sizes: JackGraphManager={d} JackPort={d} ConnectionManager={d} ConnectionManagerWrapper={d} JackClientTiming={d} jack_shm_info_t={d}", .{
+            @sizeOf(shm.JackGraphManager), @sizeOf(shm.JackPort), @sizeOf(shm.ConnectionManager), @sizeOf(shm.ConnectionManagerWrapper), @sizeOf(shm.JackClientTiming), @sizeOf(shm.jack_shm_info_t),
+        });
         try self.channel.open();
 
         try registry.initRegistry(self.shm_helper.server_name);
         try self.createShmSegments();
+        
+        // Write PID to file for inspection tools
+        const pid_str = std.fmt.allocPrint(self.allocator, "{d}", .{std.os.linux.getpid()}) catch return;
+        defer self.allocator.free(pid_str);
+        const pid_file = std.fs.cwd().createFile("/tmp/njackd.pid", . { .truncate = true }) catch null;
+        if (pid_file) |f| {
+            f.writeAll(pid_str) catch {};
+            f.close();
+        }
+
         std.log.info("SHM segments created and registered, registry ready for clients", .{});
 
         // Pass SHM references to channel for client handling
@@ -298,7 +315,7 @@ pub const Server = struct {
 
         try self.device_monitor.open();
         self.device_monitor.setCallback(hotplugCallback, self);
-        self.device_monitor.enumerateDevices(hotplugCallback, self);
+        // self.device_monitor.enumerateDevices(hotplugCallback, self);
 
         self.running = true;
     }
@@ -370,7 +387,19 @@ pub const Server = struct {
             }
 
             // Process engine
-            _ = self.engine.process(cur_time, self.engine_control.fPrevCycleTime);
+            if (self.engine.process(cur_time, self.engine_control.fPrevCycleTime)) {
+                var notif = request.JackClientNotification{
+                    .fSize = comptime @as(i32, @intCast(@sizeOf(request.JackClientNotification))),
+                    .fName = [_]u8{0} ** c.JACK_CLIENT_NAME_SIZE_1,
+                    .fRefNum = -1,
+                    .fNotify = @as(i32, @intCast(@intFromEnum(request.NotificationType.kGraphOrderCallback))),
+                    .fValue1 = 0,
+                    .fValue2 = 0,
+                    .fSync = 0,
+                    .fMessage = [_]u8{0} ** c.JACK_MESSAGE_SIZE_1,
+                };
+                self.channel.notifyClients(&notif);
+            }
 
             // Write all drivers
             for (0..count) |i| {

@@ -1,5 +1,5 @@
 const std = @import("std");
-const c = @import("constants");
+const c = @import("../constants.zig");
 
 const driver = @import("driver.zig");
 const DriverInterface = driver.DriverInterface;

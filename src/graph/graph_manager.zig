@@ -1,5 +1,5 @@
 const std = @import("std");
-const c = @import("constants");
+const c = @import("../constants.zig");
 
 const conn = @import("connection_manager.zig");
 const atomic_state = @import("../sync/atomic_state.zig");
@@ -12,33 +12,32 @@ const jack_default_audio_sample_t = f32;
 const ConnectionManager = conn.ConnectionManager;
 const Port = @import("port.zig").Port;
 const FixedArray = conn.FixedArray;
+const shm = @import("../shm/layouts.zig");
 
 const AtomicCounter = atomic_state.AtomicCounter;
 
 pub const AtomicConnectionManager = atomic_state.AtomicState(ConnectionManager);
 
 pub const GraphManager = struct {
-    // Must be kept in shared memory, so we use packed layout
-    state: AtomicConnectionManager,
     fPortMax: u32,
     fClientTiming: [c.CLIENT_NUM]conn.ClientTiming,
     fPortArray: std.ArrayListUnmanaged(Port),
+    gm_shm: ?*shm.JackGraphManager,
 
     const Self = @This();
 
-    pub fn init(allocator: std.mem.Allocator, port_max: u32) !Self {
+    pub fn init(allocator: std.mem.Allocator, port_max: u32, gm_shm_ptr: ?*shm.JackGraphManager) !Self {
         var port_array = std.ArrayListUnmanaged(Port){};
         try port_array.resize(allocator, port_max);
+
         var self = Self{
-            .state = undefined,
             .fPortMax = port_max,
             .fClientTiming = [_]conn.ClientTiming{
                 .{ .fSignaledAt = 0, .fAwakeAt = 0, .fFinishedAt = 0, .fStatus = 0 },
             } ** c.CLIENT_NUM,
             .fPortArray = port_array,
+            .gm_shm = gm_shm_ptr,
         };
-
-        self.state.init(ConnectionManager.init());
 
         for (0..port_max) |i| {
             var port = Port{
@@ -72,18 +71,37 @@ pub const GraphManager = struct {
         return &self.fPortArray.items[@as(usize, @intCast(index))];
     }
 
+    pub fn initShmState(self: *Self) void {
+        const gm = self.gm_shm orelse return;
+        std.log.info("GraphManager SHM offset: {d}", .{@offsetOf(shm.JackGraphManager, "fPortArray")});
+        const cm0 = getCm(gm, 0);
+        const cm1 = getCm(gm, 1);
+
+        ConnectionManager.initShm(cm0);
+        ConnectionManager.initShm(cm1);
+
+        gm.fCounter = .{ .info = .{ .fLongVal = 0 } };
+        gm.fCallWriteCounter = 0;
+    }
+
+    // --- Allocation ---
+
     pub fn allocatePort(self: *Self, refnum: i32, name: []const u8, port_type: []const u8, flags: u32, buffer_size: u32) ?u32 {
         _ = port_type;
-        const manager = self.state.writeNextStateStart();
-
+        std.log.debug("allocatePort called: refnum={d} name={s} flags={x}", .{ refnum, name, flags });
+        const gm = self.gm_shm orelse {
+            std.log.debug("allocatePort: gm_shm is null", .{});
+            return null;
+        };
+        const manager = writeNextStateStartShm(gm);
         const port_index = self.allocatePortAux(refnum);
         if (port_index == c.NO_PORT) {
-            self.state.writeNextStateStop();
+            writeNextStateStopShm(gm);
             return null;
         }
 
         const port = self.getPort(port_index);
-        port.fTypeId = 0; // TODO: port type registry
+        port.fTypeId = 0;
         port.fFlags = flags;
         port.fRefNum = refnum;
         port.fInUse = true;
@@ -99,7 +117,7 @@ pub const GraphManager = struct {
         @memset(&port.fAlias2, 0);
 
         var res: bool = false;
-        if (flags & 0x2 != 0) { // JackPortIsOutput
+        if (flags & 0x2 != 0) {
             res = manager.addOutputPort(@intCast(refnum), @intCast(port_index));
         } else {
             res = manager.addInputPort(@intCast(refnum), @intCast(port_index));
@@ -107,12 +125,27 @@ pub const GraphManager = struct {
 
         if (!res) {
             port.release();
-            self.state.writeNextStateStop();
+            self.syncPortToShm(port_index);
+            writeNextStateStopShm(gm);
             return null;
         }
 
-        self.state.writeNextStateStop();
+        self.syncPortToShm(port_index);
+        writeNextStateStopShm(gm);
         return port_index;
+    }
+
+    fn syncPortToShm(self: *Self, port_index: u32) void {
+        const gm = self.gm_shm orelse return;
+        const port = self.getPort(port_index);
+        const base_addr = @intFromPtr(gm);
+        const port_offset = @offsetOf(shm.JackGraphManager, "fPortArray");
+        const port_addr = base_addr + port_offset + port_index * @sizeOf(shm.JackPort);
+        const dst: *shm.JackPort = @ptrFromInt(port_addr);
+        @memcpy(
+            @as([*]u8, @ptrCast(dst))[0..@sizeOf(shm.JackPort)],
+            @as([*]u8, @ptrCast(port))[0..@sizeOf(shm.JackPort)],
+        );
     }
 
     fn allocatePortAux(self: *Self, refnum: i32) u32 {
@@ -126,7 +159,8 @@ pub const GraphManager = struct {
     }
 
     pub fn releasePort(self: *Self, port_index: u32) void {
-        const manager = self.state.writeNextStateStart();
+        const gm = self.gm_shm orelse return;
+        const manager = writeNextStateStartShm(gm);
         const port = self.getPort(port_index);
 
         self.disconnectAllPort(manager, port_index);
@@ -140,7 +174,8 @@ pub const GraphManager = struct {
         }
 
         port.release();
-        self.state.writeNextStateStop();
+        self.syncPortToShm(port_index);
+        writeNextStateStopShm(gm);
     }
 
     fn disconnectAllPort(self: *Self, manager: *ConnectionManager, port_index: u32) void {
@@ -174,39 +209,41 @@ pub const GraphManager = struct {
         }
     }
 
+    // --- Connection ---
+
     pub fn connect(self: *Self, src: u32, dst: u32) bool {
-        const manager = self.state.writeNextStateStart();
+        const gm = self.gm_shm orelse return false;
+        const manager = writeNextStateStartShm(gm);
         const src_port = self.getPort(src);
         const dst_port = self.getPort(dst);
 
         if (src_port.fRefNum < 0 or dst_port.fRefNum < 0) {
-            self.state.writeNextStateStop();
+            writeNextStateStopShm(gm);
             return false;
         }
 
-        // Add connection
         if (!manager.connect(src, dst)) {
-            self.state.writeNextStateStop();
+            writeNextStateStopShm(gm);
             return false;
         }
 
         const src_ref: jack_int_t = @intCast(src_port.fRefNum);
         const dst_ref: jack_int_t = @intCast(dst_port.fRefNum);
 
-        // Track inter-client connection
         manager.incDirectConnection(src_ref, dst_ref);
 
-        self.state.writeNextStateStop();
+        writeNextStateStopShm(gm);
         return true;
     }
 
     pub fn disconnect(self: *Self, src: u32, dst: u32) bool {
-        const manager = self.state.writeNextStateStart();
+        const gm = self.gm_shm orelse return false;
+        const manager = writeNextStateStartShm(gm);
         const src_port = self.getPort(src);
         const dst_port = self.getPort(dst);
 
         if (!manager.disconnect(src, dst)) {
-            self.state.writeNextStateStop();
+            writeNextStateStopShm(gm);
             return false;
         }
 
@@ -214,17 +251,21 @@ pub const GraphManager = struct {
         const dst_ref: jack_int_t = @intCast(dst_port.fRefNum);
         manager.decDirectConnection(src_ref, dst_ref);
 
-        self.state.writeNextStateStop();
+        writeNextStateStopShm(gm);
         return true;
     }
 
+    // --- Graph execution ---
+
     pub fn runCurrentGraph(self: *Self) void {
-        const manager = self.state.readCurrentState();
+        const gm = self.gm_shm orelse return;
+        const manager = readCurrentStateShm(gm);
         manager.resetGraph(&self.fClientTiming);
     }
 
     pub fn runNextGraph(self: *Self) bool {
-        const manager = self.state.trySwitchState();
+        const gm = self.gm_shm orelse return false;
+        const manager = trySwitchStateShm(gm);
         if (manager) |m| {
             m.resetGraph(&self.fClientTiming);
             return true;
@@ -233,20 +274,21 @@ pub const GraphManager = struct {
     }
 
     pub fn isFinishedGraph(self: *Self) bool {
-        const manager = self.state.readCurrentState();
+        const gm = self.gm_shm orelse return true;
+        const manager = readCurrentStateShm(gm);
         return manager.getActivation(c.FREEWHEEL_DRIVER_REFNUM) == 0;
     }
 
     pub fn getBuffer(self: *Self, port_index: u32, buffer_size: u32) ?[*]f32 {
+        const gm = self.gm_shm orelse return null;
         if (port_index >= self.fPortMax or port_index == c.NO_PORT) return null;
         const port = self.getPort(port_index);
         if (!port.fInUse) return null;
 
-        const manager = self.state.readCurrentState();
+        const manager = readCurrentStateShm(gm);
         const len = manager.connections(port_index);
 
         if (port.fFlags & 0x2 != 0) {
-            // Output port
             if (port.fTied != c.NO_PORT) {
                 const tied = self.getPort(port.fTied);
                 return tied.getBuffer();
@@ -254,30 +296,25 @@ pub const GraphManager = struct {
             return port.getBuffer();
         }
 
-        // Input port with no connections
         if (len == 0) {
             port.clearBuffer(buffer_size);
             return port.getBuffer();
         }
 
-        // Single connection
         if (len == 1) {
             const src_index = manager.getPort(port_index, 0);
             const src_port = self.getPort(src_index);
             if (src_port.fRefNum == port.fRefNum) {
-                // Intra-client: must copy
                 const src_buf = self.getBuffer(src_index, buffer_size) orelse return null;
                 port.clearBuffer(buffer_size);
                 const dst = port.getBuffer();
                 @memcpy(dst[0..buffer_size], src_buf[0..buffer_size]);
                 return dst;
             } else {
-                // Inter-client: zero-copy
                 return self.getBuffer(src_index, buffer_size);
             }
         }
 
-        // Multiple connections: mix
         const connections = manager.getConnections(port_index);
         var buffers: [c.CONNECTION_NUM_FOR_PORT][*]f32 = undefined;
         var count: usize = 0;
@@ -295,7 +332,8 @@ pub const GraphManager = struct {
     }
 
     pub fn resumeRefNum(self: *Self, refnum: usize, synchro: anytype) void {
-        const manager = self.state.readCurrentState();
+        const gm = self.gm_shm orelse return;
+        const manager = readCurrentStateShm(gm);
         const timings = &self.fClientTiming;
 
         timings[refnum].fStatus = @intFromEnum(conn.ClientStatus.Finished);
@@ -311,23 +349,96 @@ pub const GraphManager = struct {
     }
 
     pub fn activate(self: *Self, refnum: i32) void {
-        const manager = self.state.writeNextStateStart();
+        const gm = self.gm_shm orelse return;
+        const manager = writeNextStateStartShm(gm);
         _ = manager.directConnect(c.FREEWHEEL_DRIVER_REFNUM, @intCast(refnum));
         _ = manager.directConnect(@intCast(refnum), c.FREEWHEEL_DRIVER_REFNUM);
-        self.state.writeNextStateStop();
+        writeNextStateStopShm(gm);
     }
 
     pub fn deactivate(self: *Self, refnum: i32) void {
-        const manager = self.state.writeNextStateStart();
+        const gm = self.gm_shm orelse return;
+        const manager = writeNextStateStartShm(gm);
         if (manager.isDirectConnection(@intCast(refnum), c.FREEWHEEL_DRIVER_REFNUM)) {
             _ = manager.directDisconnect(@intCast(refnum), c.FREEWHEEL_DRIVER_REFNUM);
         }
         if (manager.isDirectConnection(c.FREEWHEEL_DRIVER_REFNUM, @intCast(refnum))) {
             _ = manager.directDisconnect(c.FREEWHEEL_DRIVER_REFNUM, @intCast(refnum));
         }
-        self.state.writeNextStateStop();
+        writeNextStateStopShm(gm);
     }
 };
+
+/// Compute a properly-aligned pointer to a ConnectionManager within the SHM graph manager.
+/// The SHM base pointer is page-aligned, so computing offsets from it yields correct alignment
+/// even though struct fields are annotated `align(1)` for packed layout.
+fn getCm(gm: *shm.JackGraphManager, index: usize) *ConnectionManager {
+    const addr = @intFromPtr(gm);
+    const fstate_offset = @offsetOf(shm.JackGraphManager, "fState");
+    const wrapper_size = @sizeOf(shm.ConnectionManagerWrapper);
+    return @ptrFromInt(addr + fstate_offset + index * wrapper_size);
+}
+
+fn getCounter(gm: *shm.JackGraphManager) *align(1) u32 {
+    const addr = @intFromPtr(gm);
+    const counter_offset = @offsetOf(shm.JackGraphManager, "fCounter");
+    return @ptrFromInt(addr + counter_offset);
+}
+
+fn getShortVal1(gm: *shm.JackGraphManager) *align(1) const u16 {
+    const addr = @intFromPtr(gm);
+    const counter_offset = @offsetOf(shm.JackGraphManager, "fCounter");
+    return @ptrFromInt(addr + counter_offset);
+}
+
+fn readCounter(gm: *shm.JackGraphManager) u32 {
+    return getCounter(gm).*;
+}
+
+fn writeCounter(gm: *shm.JackGraphManager, val: u32) void {
+    getCounter(gm).* = val;
+}
+
+fn writeNextStateStartShm(gm: *shm.JackGraphManager) *ConnectionManager {
+    _ = readCounter(gm);
+
+    const cur_idx = gm.fCounter.info.scounter.fShortVal1 & 0x0001;
+    const next_idx = (gm.fCounter.info.scounter.fShortVal1 + 1) & 0x0001;
+
+    const cm_size = @sizeOf(ConnectionManager);
+    const cm0: *ConnectionManager = getCm(gm, 0);
+    const cm1: *ConnectionManager = getCm(gm, 1);
+
+    if (cur_idx == 0) {
+        @memcpy(@as([*]u8, @ptrCast(cm1))[0..cm_size], @as([*]u8, @ptrCast(cm0))[0..cm_size]);
+    } else {
+        @memcpy(@as([*]u8, @ptrCast(cm0))[0..cm_size], @as([*]u8, @ptrCast(cm1))[0..cm_size]);
+    }
+
+    return if (next_idx == 0) cm0 else cm1;
+}
+
+fn writeNextStateStopShm(gm: *shm.JackGraphManager) void {
+    const prev = readCounter(gm);
+    const new = prev +% 0x00010000;
+    writeCounter(gm, new);
+}
+
+fn readCurrentStateShm(gm: *shm.JackGraphManager) *ConnectionManager {
+    const idx = getShortVal1(gm).* & 0x0001;
+    return getCm(gm, idx);
+}
+
+fn trySwitchStateShm(gm: *shm.JackGraphManager) ?*ConnectionManager {
+    const prev = readCounter(gm);
+    if ((prev & 0xFFFF) == ((prev >> 16) & 0xFFFF)) {
+        return null;
+    }
+    const new_val = (prev & 0xFFFF0000) | ((prev >> 16) & 0xFFFF);
+    writeCounter(gm, new_val);
+    const idx = (new_val & 0xFFFF) & 0x0001;
+    return getCm(gm, idx);
+}
 
 pub fn MixBuffers(comptime T: type) type {
     return struct {

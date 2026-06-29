@@ -1,5 +1,5 @@
 const std = @import("std");
-const c = @import("constants");
+const c = @import("../constants.zig");
 
 const GraphManager = @import("../graph/graph_manager.zig").GraphManager;
 const ConnectionManager = @import("../graph/connection_manager.zig").ConnectionManager;

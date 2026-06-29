@@ -1,35 +1,30 @@
 const std = @import("std");
-const builtin = @import("builtin");
+const c_consts = @import("../constants.zig");
+const posix = std.posix;
 
 const c = @cImport({
     @cInclude("sys/mman.h");
-    @cInclude("sys/file.h");
     @cInclude("fcntl.h");
     @cInclude("unistd.h");
+    @cInclude("sys/file.h");
 });
 
-const posix = switch (builtin.os.tag) {
-    .linux => std.posix,
-    else => @compileError("Unsupported OS"),
-};
-
-// Constants matching JACK2 shm.h
 pub const MAX_SERVERS: usize = 8;
 pub const MAX_SHM_ID: usize = 256;
+pub const JACK_SERVER_NAME_SIZE: usize = 256;
 pub const SHM_NAME_MAX: usize = 255;
 
 pub const JACK_SHM_MAGIC: u32 = 0x4a41434b;
 pub const JACK_SHM_NULL_INDEX: i32 = -1;
 pub const JACK_SHM_REGISTRY_INDEX: i32 = -2;
 
-pub const shmtype: u32 = 1; // shm_POSIX (must match JACK2 value)
+pub const shmtype: u32 = 1; // shm_POSIX
 
 pub const registry_name = "/jack-shm-registry";
 
-// Structs matching JACK2 shm.h exactly
 pub const jack_shm_server_t = extern struct {
     pid: i32,
-    name: [257]u8,
+    name: [JACK_SERVER_NAME_SIZE + 1]u8,
 };
 
 pub const jack_shm_header_t = extern struct {
@@ -62,10 +57,6 @@ fn lock() bool {
 
 fn unlock() void {
     if (g_registry_fd >= 0) _ = c.flock(g_registry_fd, c.LOCK_UN);
-}
-
-pub fn isInitialized() bool {
-    return g_shm_header != null;
 }
 
 pub fn initRegistry(server_name: []const u8) !void {
@@ -109,7 +100,14 @@ pub fn initRegistry(server_name: []const u8) !void {
     if (!lock()) return error.ShmRegistryLock;
     defer unlock();
 
-    if (hdr.magic != JACK_SHM_MAGIC) {
+    if (hdr.magic != JACK_SHM_MAGIC or
+        hdr.type != shmtype or
+        hdr.size != @as(i32, @intCast(JACK_SHM_REGISTRY_SIZE)) or
+        hdr.hdr_len != @as(i32, @intCast(@sizeOf(jack_shm_header_t))) or
+        hdr.entry_len != @as(i32, @intCast(@sizeOf(jack_shm_registry_t))))
+    {
+        std.log.info("Registry RESET: magic={x} (want {x}) type={d} (want {d}) size={d} (want {d}) hdr_len={d} (want {d}) entry_len={d} (want {d}) hdr_sizeof={d} entry_sizeof={d}",
+            .{ hdr.magic, JACK_SHM_MAGIC, hdr.type, shmtype, hdr.size, @as(i32, @intCast(JACK_SHM_REGISTRY_SIZE)), hdr.hdr_len, @as(i32, @intCast(@sizeOf(jack_shm_header_t))), hdr.entry_len, @as(i32, @intCast(@sizeOf(jack_shm_registry_t))), @sizeOf(jack_shm_header_t), @sizeOf(jack_shm_registry_t) });
         @memset(@as([*]u8, @ptrCast(hdr))[0..JACK_SHM_REGISTRY_SIZE], 0);
         hdr.magic = JACK_SHM_MAGIC;
         hdr.protocol = 0;
@@ -126,15 +124,15 @@ pub fn initRegistry(server_name: []const u8) !void {
                 .id = [_]u8{0} ** SHM_NAME_MAX,
             };
         }
-    }
 
-    if (hdr.magic != JACK_SHM_MAGIC or
-        hdr.type != shmtype or
-        hdr.size != JACK_SHM_REGISTRY_SIZE or
-        hdr.hdr_len != @sizeOf(jack_shm_header_t) or
-        hdr.entry_len != @sizeOf(jack_shm_registry_t))
-    {
-        return error.InvalidShmRegistry;
+        if (hdr.magic != JACK_SHM_MAGIC or
+            hdr.type != shmtype or
+            hdr.size != @as(i32, @intCast(JACK_SHM_REGISTRY_SIZE)) or
+            hdr.hdr_len != @as(i32, @intCast(@sizeOf(jack_shm_header_t))) or
+            hdr.entry_len != @as(i32, @intCast(@sizeOf(jack_shm_registry_t))))
+        {
+            return error.InvalidShmRegistry;
+        }
     }
 }
 
@@ -150,10 +148,8 @@ pub fn registerShmSegment(index: i32, shm_name: []const u8, size: usize) !void {
     @memset(entry.id[0..], 0);
     @memcpy(entry.id[0..copy_len], shm_name[0..copy_len]);
     entry.size = @intCast(size);
-    entry.allocator = @intCast(c.getpid());
+    entry.allocator = @intCast(std.os.linux.getuid());
     entry.index = @intCast(index);
-
-    std.log.info("registry[{}] = '{s}' (size={}, allocator={})", .{ index, shm_name, size, entry.allocator });
 }
 
 pub fn clearRegistryEntry(index: i32) void {

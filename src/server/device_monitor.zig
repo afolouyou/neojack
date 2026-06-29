@@ -1,7 +1,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
-const c = @import("constants");
+const c = @import("../constants.zig");
 
 const udev = @cImport({
     @cInclude("libudev.h");

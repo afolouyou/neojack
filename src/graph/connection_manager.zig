@@ -1,14 +1,14 @@
 const std = @import("std");
-const c = @import("constants");
+const c = @import("../constants.zig");
 
 const activation = @import("../sync/activation_counter.zig");
 
 pub const jack_int_t = u16;
 pub const jack_port_id_t = u32;
 
-pub const FixedArray = struct {
-    fTable: [c.CONNECTION_NUM_FOR_PORT]jack_int_t,
-    fCounter: u32,
+pub const FixedArray = extern struct {
+    fTable: [c.CONNECTION_NUM_FOR_PORT]jack_int_t align(1),
+    fCounter: u32 align(1),
 
     const Self = @This();
 
@@ -66,9 +66,9 @@ pub const FixedArray = struct {
     }
 };
 
-pub const FixedArray1 = struct {
-    parent: FixedArray,
-    fUsed: bool,
+pub const FixedArray1 = extern struct {
+    parent: FixedArray align(1),
+    fUsed: bool align(1),
 
     const Self = @This();
 
@@ -86,8 +86,8 @@ pub const FixedArray1 = struct {
     }
 };
 
-pub const FixedMatrix = struct {
-    fTable: [c.CLIENT_NUM][c.CLIENT_NUM]jack_int_t,
+pub const FixedMatrix = extern struct {
+    fTable: [c.CLIENT_NUM][c.CLIENT_NUM]jack_int_t align(1),
 
     const Self = @This();
 
@@ -138,8 +138,8 @@ pub const FixedMatrix = struct {
     }
 };
 
-pub const LoopFeedback = struct {
-    fTable: [c.CONNECTION_NUM_FOR_PORT][3]jack_int_t,
+pub const LoopFeedback = extern struct {
+    fTable: [c.CONNECTION_NUM_FOR_PORT][3]jack_int_t align(1),
 
     const Self = @This();
 
@@ -189,7 +189,7 @@ pub const LoopFeedback = struct {
     }
 };
 
-pub const ClientTiming = struct {
+pub const ClientTiming = extern struct {
     fSignaledAt: u64,
     fAwakeAt: u64,
     fFinishedAt: u64,
@@ -203,13 +203,13 @@ pub const ClientStatus = enum(i32) {
     Finished = 3,
 };
 
-pub const ConnectionManager = struct {
-    fConnection: [c.PORT_NUM_MAX]FixedArray,
-    fInputPort: [c.CLIENT_NUM]FixedArray1,
-    fOutputPort: [c.CLIENT_NUM]FixedArray,
-    fConnectionRef: FixedMatrix,
-    fInputCounter: [c.CLIENT_NUM]activation.ActivationCount,
-    fLoopFeedback: LoopFeedback,
+pub const ConnectionManager = extern struct {
+    fConnection: [c.PORT_NUM_MAX]FixedArray align(1),
+    fInputPort: [c.CLIENT_NUM]FixedArray1 align(1),
+    fOutputPort: [c.CLIENT_NUM]FixedArray align(1),
+    fConnectionRef: FixedMatrix align(1),
+    fInputCounter: [c.CLIENT_NUM]activation.ActivationCount align(1),
+    fLoopFeedback: LoopFeedback align(1),
 
     const Self = @This();
 
@@ -222,6 +222,17 @@ pub const ConnectionManager = struct {
         for (&cm.fInputCounter) |*counter| counter.* = activation.ActivationCount.init(0);
         cm.fLoopFeedback = LoopFeedback.init();
         return cm;
+    }
+
+    /// Initialize a ConnectionManager in-place (no stack temporary).
+    /// This avoids allocating 19 MB on the stack.
+    pub fn initShm(cm: *Self) void {
+        for (&cm.fConnection) |*conn| conn.* = FixedArray.init();
+        for (&cm.fInputPort) |*port| port.* = FixedArray1.init();
+        for (&cm.fOutputPort) |*port| port.* = FixedArray.init();
+        cm.fConnectionRef = FixedMatrix.init();
+        for (&cm.fInputCounter) |*counter| counter.* = activation.ActivationCount.init(0);
+        cm.fLoopFeedback = LoopFeedback.init();
     }
 
     pub fn connect(self: *Self, port_src: jack_port_id_t, port_dst: jack_port_id_t) bool {
@@ -287,7 +298,8 @@ pub const ConnectionManager = struct {
     }
 
     pub fn getConnections(self: *const Self, port_index: jack_port_id_t) []const jack_int_t {
-        return &self.fConnection[@as(usize, @intCast(port_index))].fTable;
+        const table = &self.fConnection[@as(usize, @intCast(port_index))].fTable;
+        return @as([*]const jack_int_t, @alignCast(@ptrCast(table)))[0..table.len];
     }
 
     pub fn incDirectConnection(self: *Self, src_ref: jack_int_t, dst_ref: jack_int_t) void {

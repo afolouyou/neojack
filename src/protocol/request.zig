@@ -1,4 +1,4 @@
-const c = @import("constants");
+const c = @import("../constants.zig");
 
 pub const RequestType = enum(u32) {
     kRegisterPort = 1,
@@ -276,15 +276,15 @@ pub const NotificationType = enum(u32) {
     kMaxNotification = 64,
 };
 
-pub const JackClientNotification = struct {
-    fSize: i32,
-    fName: [c.JACK_CLIENT_NAME_SIZE_1]u8,
-    fRefNum: i32,
-    fNotify: i32,
-    fValue1: i32,
-    fValue2: i32,
-    fSync: i32,
-    fMessage: [c.JACK_MESSAGE_SIZE_1]u8,
+pub const JackClientNotification = extern struct {
+    fSize: i32 align(1),
+    fName: [c.JACK_CLIENT_NAME_SIZE_1]u8 align(1),
+    fRefNum: i32 align(1),
+    fNotify: i32 align(1),
+    fValue1: i32 align(1),
+    fValue2: i32 align(1),
+    fSync: i32 align(1),
+    fMessage: [c.JACK_MESSAGE_SIZE_1]u8 align(1),
 
     fn size() i32 {
         return @sizeOf(@This()) - @sizeOf(i32);

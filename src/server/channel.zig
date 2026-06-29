@@ -2,7 +2,7 @@ const std = @import("std");
 const builtin = @import("builtin");
 const posix = std.posix;
 
-const c = @import("constants");
+const c = @import("../constants.zig");
 const request = @import("../protocol/request.zig");
 const shm = @import("../shm/layouts.zig");
 const SharedMemory = @import("../shm/mem.zig").SharedMemory;
@@ -34,6 +34,9 @@ pub const Channel = struct {
     // Notification sockets per client (indexed by refnum)
     notify_sockets: std.ArrayListUnmanaged(posix.fd_t),
 
+    // Mutex protecting notify_sockets (accessed from both channel and RT threads)
+    notify_mutex: std.Thread.Mutex,
+
     // Named futex synchronisation per client (indexed by refnum)
     synchro_table: [CLIENT_NUM]NamedFutex,
 
@@ -52,6 +55,7 @@ pub const Channel = struct {
             .engine_shm = null,
             .graph_shm = null,
             .notify_sockets = .{},
+            .notify_mutex = .{},
             .synchro_table = [_]NamedFutex{NamedFutex.init()} ** CLIENT_NUM,
         };
     }
@@ -75,34 +79,31 @@ pub const Channel = struct {
         const socket_dir = "/dev/shm";
         const uid = std.os.linux.geteuid();
         var sock_path: [108]u8 = [_]u8{0} ** 108;
-        const path_slice = std.fmt.bufPrint(&sock_path, "{s}/jack_{s}_{d}_{d}", .{ socket_dir, self.server_name, uid, 0 }) catch {
+        const path_slice = std.fmt.bufPrint(&sock_path, "{s}/jack_{s}_{d}_0", .{ socket_dir, self.server_name, uid }) catch {
             return error.NameTooLong;
         };
 
-        {
-            var null_term: [109]u8 = [_]u8{0} ** 109;
-            @memcpy(null_term[0..path_slice.len], path_slice);
-            _ = std.os.linux.syscall1(.unlink, @intFromPtr(&null_term));
+        if (std.fs.cwd().access(path_slice, .{}) == error.FileNotFound) {
+            // File does not exist, that's fine.
+        } else {
+            std.fs.cwd().deleteFile(path_slice) catch {};
         }
 
-        const fd = try posix.socket(posix.AF.UNIX, posix.SOCK.STREAM | posix.SOCK.CLOEXEC, 0);
-        errdefer posix.close(fd);
-
-        const sockaddr = posix.sockaddr.un{ .path = sock_path };
-        try posix.bind(fd, @as(*const posix.sockaddr, @ptrCast(&sockaddr)), @sizeOf(@TypeOf(sockaddr)));
-
-        try posix.listen(fd, 16);
-
-        self.server_socket = fd;
+        const address = try std.net.Address.initUnix(path_slice);
+        const listener = try address.listen(.{});
+        self.server_socket = listener.stream.handle;
+        self.running = true;
     }
 
     pub fn close(self: *Self) void {
         self.running = false;
         // Close all notification sockets
+        self.notify_mutex.lock();
         for (self.notify_sockets.items) |fd| {
-            posix.close(fd);
+            if (fd >= 0) posix.close(fd);
         }
         self.notify_sockets.deinit(self.allocator);
+        self.notify_mutex.unlock();
         if (self.server_socket) |fd| {
             posix.shutdown(fd, .both) catch {};
             posix.close(fd);
@@ -111,9 +112,7 @@ pub const Channel = struct {
         const uid = std.os.linux.geteuid();
         var sock_path: [108]u8 = [_]u8{0} ** 108;
         if (std.fmt.bufPrint(&sock_path, "/dev/shm/jack_{s}_{d}_0", .{ self.server_name, uid })) |path| {
-            var null_term: [109]u8 = [_]u8{0} ** 109;
-            @memcpy(null_term[0..path.len], path);
-            _ = std.os.linux.syscall1(.unlink, @intFromPtr(&null_term));
+            std.fs.cwd().deleteFile(path) catch {};
         } else |_| {}
     }
 
@@ -191,7 +190,7 @@ pub const Channel = struct {
     fn connectNotifySocket(self: *Self, name: []const u8, refnum: i32) void {
         const socket_dir = "/dev/shm";
         const uid = std.os.linux.geteuid();
-        const path_buf = std.fmt.allocPrint(self.allocator, "{s}/jack_{s}_{d}_{d}", .{ socket_dir, name, uid, 0 }) catch return;
+        const path_buf = std.fmt.allocPrint(self.allocator, "{s}/jack_{s}_{d}_1", .{ socket_dir, name, uid }) catch return;
         defer self.allocator.free(path_buf);
 
         const fd = posix.socket(posix.AF.UNIX, posix.SOCK.STREAM | posix.SOCK.CLOEXEC, 0) catch return;
@@ -288,7 +287,7 @@ pub const Channel = struct {
             return;
         };
         const client_control: *shm.JackClientControl = @ptrCast(@alignCast(client_ptr));
-        client_control.fInfo = .{ .index = client_shm_idx, .size = @intCast(client_size), .attached = 0 };
+        client_control.fInfo = .{ .index = @intCast(client_shm_idx), .size = @intCast(client_size), .ptr = .{ .attached_at = null } };
         client_control.fName = req.fName;
         client_control.fRefNum = @intCast(refnum);
         client_control.fPID = req.fPID;
@@ -297,7 +296,7 @@ pub const Channel = struct {
         // Register client SHM in registry
         {
             var full_name_buf: [256]u8 = undefined;
-            if (std.fmt.bufPrint(&full_name_buf, "/jack_{s}_{d}_{s}", .{ shm_helper.server_name, shm_helper.pid, seg_name })) |full_name| {
+            if (std.fmt.bufPrint(&full_name_buf, "/jack_{s}_{d}_shm_{s}", .{ shm_helper.server_name, shm_helper.pid, seg_name })) |full_name| {
                 registry.registerShmSegment(client_shm_idx, full_name, client_size) catch {
                     std.log.err("Failed to register client SHM in registry", .{});
                 };
@@ -316,7 +315,9 @@ pub const Channel = struct {
         };
 
         // Connect notification socket to client's listen socket
+        self.notify_mutex.lock();
         self.connectNotifySocket(name, refnum);
+        self.notify_mutex.unlock();
 
         const result = request.JackClientOpenResult{
             .fResult = 0,
@@ -327,39 +328,77 @@ pub const Channel = struct {
         sendResponse(client_fd, result);
 
         std.log.info("Client opened: {s} (refnum {d})", .{ name, refnum });
+
+        // Notify all clients about new client
+        var notif = makeNotification(.kAddClient, refnum, refnum, 0);
+        @memcpy(notif.fName[0..name.len], name);
+        self.notifyClients(&notif);
     }
 
     fn handleClientClose(self: *Self, client_fd: posix.fd_t) void {
-        const req = (readBody(client_fd, request.JackClientCloseRequest) orelse return);
+        std.log.debug("handleClientClose: reading body", .{});
+        const req = (readBody(client_fd, request.JackClientCloseRequest) orelse {
+            std.log.err("handleClientClose: readBody failed", .{});
+            return;
+        });
+        std.log.debug("handleClientClose: got fRefNum={d}", .{req.fRefNum});
 
-        const ct = self.client_table orelse return;
+        // Send response IMMEDIATELY to avoid client timeout/broken pipe
+        std.log.debug("handleClientClose: sending response immediately", .{});
+        const result = request.JackResult{ .fResult = 0 };
+        sendResponse(client_fd, result);
+
+        const ct = self.client_table orelse {
+            std.log.err("handleClientClose: no client table", .{});
+            return;
+        };
+
+        // Capture client name before freeing
+        var client_name: [c.JACK_CLIENT_NAME_SIZE_1]u8 = [_]u8{0} ** c.JACK_CLIENT_NAME_SIZE_1;
+        if (ct.get(req.fRefNum)) |entry| {
+            @memcpy(client_name[0..], &entry.name);
+        }
+
+        std.log.debug("handleClientClose: freeing client", .{});
         ct.free(req.fRefNum);
 
         const shm_helper = self.shm_helper orelse return;
         const client_shm_idx = SHM_CLIENT_BASE + req.fRefNum;
         var name_buf: [16]u8 = undefined;
         const seg_name = std.fmt.bufPrint(&name_buf, "{d}", .{client_shm_idx}) catch return;
+        std.log.debug("handleClientClose: unlinking SHM segment {s}", .{seg_name});
         shm_helper.unlinkSegment(seg_name);
 
         // Unregister client SHM from registry
+        std.log.debug("handleClientClose: clearing registry entry {d}", .{client_shm_idx});
         registry.clearRegistryEntry(client_shm_idx);
 
         // Destroy named futex for this client
-        self.synchro_table[@as(usize, @intCast(@max(req.fRefNum, 0)))].destroy();
+        const synchro_idx = @as(usize, @intCast(@max(req.fRefNum, 0)));
+        std.log.debug("handleClientClose: destroying synchro_table[{d}]", .{synchro_idx});
+        self.synchro_table[synchro_idx].destroy();
 
         // Close notification socket for this client
-        const idx = @as(usize, @intCast(@max(req.fRefNum, 0)));
-        if (idx < self.notify_sockets.items.len) {
-            if (self.notify_sockets.items[idx] != -1) {
-                posix.close(self.notify_sockets.items[idx]);
-                self.notify_sockets.items[idx] = -1;
+        {
+            const idx2 = @as(usize, @intCast(@max(req.fRefNum, 0)));
+            self.notify_mutex.lock();
+            if (idx2 < self.notify_sockets.items.len) {
+                if (self.notify_sockets.items[idx2] != -1) {
+                    std.log.debug("handleClientClose: closing notify socket [{d}]", .{idx2});
+                    posix.close(self.notify_sockets.items[idx2]);
+                    self.notify_sockets.items[idx2] = -1;
+                }
             }
+            self.notify_mutex.unlock();
         }
 
-        const result = request.JackResult{ .fResult = 0 };
-        sendResponse(client_fd, result);
-
         std.log.info("Client closed: refnum {d}", .{req.fRefNum});
+
+        // Notify all clients about removed client
+        var notif = makeNotification(.kRemoveClient, req.fRefNum, req.fRefNum, 0);
+        @memcpy(notif.fName[0..], &client_name);
+        std.log.debug("handleClientClose: notifying clients", .{});
+        self.notifyClients(&notif);
     }
 
     fn handleActivateClient(self: *Self, client_fd: posix.fd_t) void {
@@ -372,6 +411,9 @@ pub const Channel = struct {
         sendResponse(client_fd, result);
 
         std.log.info("Client activated: refnum {d}", .{req.fRefNum});
+
+        var notif = makeNotification(.kActivateClient, req.fRefNum, req.fRefNum, 0);
+        self.notifyClients(&notif);
     }
 
     fn handleDeactivateClient(self: *Self, client_fd: posix.fd_t) void {
@@ -401,16 +443,31 @@ pub const Channel = struct {
 
         const result = request.JackPortRegisterResult{ .fResult = 0, .fPortIndex = port_index };
         sendResponse(client_fd, result);
+
+        var notif = makeNotification(.kPortRegistrationOnCallback, req.fRefNum, @as(i32, @intCast(port_index)), 0);
+        @memcpy(notif.fName[0..name.len], name);
+        self.notifyClients(&notif);
     }
 
     fn handleUnRegisterPort(self: *Self, client_fd: posix.fd_t) void {
         const req = (readBody(client_fd, request.JackPortUnRegisterRequest) orelse return);
 
         const gm = self.graph_manager orelse return;
+        var port_name: [c.REAL_JACK_PORT_NAME_SIZE_1]u8 = [_]u8{0} ** c.REAL_JACK_PORT_NAME_SIZE_1;
+        {
+            const port = gm.getPort(req.fPortIndex);
+            const len = @min(@as(usize, std.mem.indexOfScalar(u8, &port.fName, 0) orelse c.REAL_JACK_PORT_NAME_SIZE_1), c.REAL_JACK_PORT_NAME_SIZE_1);
+            @memcpy(port_name[0..len], port.fName[0..len]);
+        }
         gm.releasePort(req.fPortIndex);
 
         const result = request.JackResult{ .fResult = 0 };
         sendResponse(client_fd, result);
+
+        var notif = makeNotification(.kPortRegistrationOffCallback, req.fRefNum, @as(i32, @intCast(req.fPortIndex)), 0);
+        const name_copy_len = @min(@as(usize, std.mem.indexOfScalar(u8, &port_name, 0) orelse port_name.len), notif.fName.len);
+        @memcpy(notif.fName[0..name_copy_len], port_name[0..name_copy_len]);
+        self.notifyClients(&notif);
     }
 
     fn handleConnectPorts(self: *Self, client_fd: posix.fd_t) void {
@@ -421,6 +478,11 @@ pub const Channel = struct {
 
         const result = request.JackResult{ .fResult = if (ok) 0 else -1 };
         sendResponse(client_fd, result);
+
+        if (ok) {
+            var notif = makeNotification(.kPortConnectCallback, req.fRefNum, @intCast(req.fSrc), @intCast(req.fDst));
+            self.notifyClients(&notif);
+        }
     }
 
     fn handleDisconnectPorts(self: *Self, client_fd: posix.fd_t) void {
@@ -431,9 +493,44 @@ pub const Channel = struct {
 
         const result = request.JackResult{ .fResult = if (ok) 0 else -1 };
         sendResponse(client_fd, result);
+
+        if (ok) {
+            var notif = makeNotification(.kPortDisconnectCallback, req.fRefNum, @intCast(req.fSrc), @intCast(req.fDst));
+            self.notifyClients(&notif);
+        }
     }
 
-    pub fn notifyClients(_: *Self, _: []posix.fd_t, _: *const request.JackClientNotification) void {
+    pub fn notifyClients(self: *Self, notification: *const request.JackClientNotification) void {
+        // Wire format: fSize (i32) = JackClientNotification::Size() = 346
+        // Then all fields written individually (no padding)
+        const total_size: i32 = comptime bodySize(request.JackClientNotification);
+        self.notify_mutex.lock();
+        defer self.notify_mutex.unlock();
+        for (self.notify_sockets.items) |fd| {
+            if (fd < 0) continue;
+            var data_size: i32 = total_size;
+            if (posix.write(fd, std.mem.asBytes(&data_size)) catch continue != 4) continue;
+            _ = posix.write(fd, notification.fName[0..]) catch continue;
+            _ = posix.write(fd, std.mem.asBytes(&notification.fRefNum)) catch continue;
+            _ = posix.write(fd, std.mem.asBytes(&notification.fNotify)) catch continue;
+            _ = posix.write(fd, std.mem.asBytes(&notification.fValue1)) catch continue;
+            _ = posix.write(fd, std.mem.asBytes(&notification.fValue2)) catch continue;
+            _ = posix.write(fd, std.mem.asBytes(&notification.fSync)) catch continue;
+            _ = posix.write(fd, notification.fMessage[0..]) catch continue;
+        }
+    }
+
+    fn makeNotification(notify: request.NotificationType, refnum: i32, value1: i32, value2: i32) request.JackClientNotification {
+        return request.JackClientNotification{
+            .fSize = comptime bodySize(request.JackClientNotification),
+            .fName = [_]u8{0} ** c.JACK_CLIENT_NAME_SIZE_1,
+            .fRefNum = refnum,
+            .fNotify = @as(i32, @intCast(@intFromEnum(notify))),
+            .fValue1 = value1,
+            .fValue2 = value2,
+            .fSync = 0,
+            .fMessage = [_]u8{0} ** c.JACK_MESSAGE_SIZE_1,
+        };
     }
 };
 
@@ -482,6 +579,13 @@ fn readBody(client_fd: posix.fd_t, comptime T: type) ?T {
 // JACK2 responses have NO header — they start directly with fResult.
 fn sendResponse(client_fd: posix.fd_t, data: anytype) void {
     inline for (std.meta.fields(@TypeOf(data))) |field| {
-        _ = posix.write(client_fd, std.mem.asBytes(&@field(data, field.name))) catch {};
+        const bytes = std.mem.asBytes(&@field(data, field.name));
+        const written = posix.write(client_fd, bytes) catch |e| {
+            std.log.err("sendResponse write error for field {s}: {}", .{ field.name, e });
+            return;
+        };
+        if (written != bytes.len) {
+            std.log.err("sendResponse partial write for field {s}: {d}/{d}", .{ field.name, written, bytes.len });
+        }
     }
 }

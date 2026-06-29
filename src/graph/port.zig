@@ -1,5 +1,5 @@
 const std = @import("std");
-const c = @import("constants");
+const c = @import("../constants.zig");
 const shm = @import("../shm/layouts.zig");
 
 const jack_nframes_t = u32;
@@ -36,20 +36,20 @@ pub const PlaybackDriverFlags: u32 = 0x1 | 0x4 | 0x10; // Input | Physical | Ter
 
 /// Must match JackPort layout in shm/layouts.zig exactly (extern struct for SHM compat)
 pub const Port = extern struct {
-    fTypeId: i32,
-    fFlags: u32,
-    fName: [c.REAL_JACK_PORT_NAME_SIZE_1]u8,
-    fAlias1: [c.REAL_JACK_PORT_NAME_SIZE_1]u8,
-    fAlias2: [c.REAL_JACK_PORT_NAME_SIZE_1]u8,
-    fRefNum: i32,
-    fLatency: u32,
-    fTotalLatency: u32,
-    fPlaybackLatency: jack_latency_range_t,
-    fCaptureLatency: jack_latency_range_t,
-    fMonitorRequests: u8,
-    fInUse: bool,
-    fTied: u32,
-    fBuffer: [c.BUFFER_SIZE_MAX + 8]f32,
+    fTypeId: i32 align(1),
+    fFlags: u32 align(1),
+    fName: [c.REAL_JACK_PORT_NAME_SIZE_1]u8 align(1),
+    fAlias1: [c.REAL_JACK_PORT_NAME_SIZE_1]u8 align(1),
+    fAlias2: [c.REAL_JACK_PORT_NAME_SIZE_1]u8 align(1),
+    fRefNum: i32 align(1),
+    fLatency: u32 align(1),
+    fTotalLatency: u32 align(1),
+    fPlaybackLatency: jack_latency_range_t align(1),
+    fCaptureLatency: jack_latency_range_t align(1),
+    fMonitorRequests: u8 align(1),
+    fInUse: bool align(1),
+    fTied: u32 align(1),
+    fBuffer: [c.BUFFER_SIZE_MAX + 8]f32 align(1),
 
     pub fn getBuffer(self: *Port) [*]f32 {
         const addr = @intFromPtr(&self.fBuffer);

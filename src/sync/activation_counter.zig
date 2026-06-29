@@ -1,9 +1,6 @@
-const std = @import("std");
-const atomic = std.atomic;
-
-pub const ActivationCount = struct {
-    fValue: i32,
-    fCount: i32,
+pub const ActivationCount = extern struct {
+    fValue: i64 align(1),
+    fCount: i64 align(1),
 
     const Self = @This();
 
@@ -15,34 +12,32 @@ pub const ActivationCount = struct {
     }
 
     pub fn setValue(self: *Self, val: i32) void {
-        @atomicStore(i32, &self.fCount, val, .release);
+        self.fCount = val;
     }
 
     pub fn getValue(self: *const Self) i32 {
-        return @atomicLoad(i32, &self.fValue, .acquire);
+        return @as(i32, @truncate(self.fValue));
     }
 
     pub fn incValue(self: *Self) void {
-        _ = @atomicRmw(i32, &self.fCount, .Add, 1, .release);
+        self.fCount += 1;
     }
 
     pub fn decValue(self: *Self) void {
-        _ = @atomicRmw(i32, &self.fCount, .Sub, 1, .release);
+        self.fCount -= 1;
     }
 
     pub fn reset(self: *Self) void {
-        const count = @atomicLoad(i32, &self.fCount, .acquire);
-        @atomicStore(i32, &self.fValue, count, .release);
+        self.fValue = self.fCount;
     }
 
     pub fn signal(self: *Self, synchro: anytype) bool {
-        const val = @atomicLoad(i32, &self.fValue, .acquire);
-        if (val == 0) {
+        if (self.fValue == 0) {
             return synchro.signal();
         }
 
-        const prev = @atomicRmw(i32, &self.fValue, .Sub, 1, .release);
-        if (prev == 1) {
+        self.fValue -= 1;
+        if (self.fValue == 1) {
             return synchro.signal();
         }
 

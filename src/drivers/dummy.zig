@@ -1,5 +1,6 @@
 const std = @import("std");
-const c = @import("constants");
+const c = @import("../constants.zig");
+const shm = @import("../shm/layouts.zig");
 
 const driver = @import("driver.zig");
 const DriverInterface = driver.DriverInterface;
@@ -65,7 +66,23 @@ pub const DummyDriver = struct {
 
     fn attach(ctx: *anyopaque) bool {
         const self: *Self = @ptrCast(@alignCast(ctx));
-        return self.state.attachPorts();
+        std.log.debug("dummy attach: refnum={d} gm_shm={any}", .{ self.state.refnum, self.state.graph_manager.gm_shm });
+        const result = self.state.attachPorts();
+        std.log.debug("dummy attach result: {}", .{result});
+        
+        // Debug: check SHM port array
+        if (self.state.graph_manager.gm_shm) |gm| {
+            const shm_ports: [*]shm.JackPort = @ptrCast(&gm.fPortArray);
+            for (0..4) |i| {
+                const p = &shm_ports[i];
+                std.log.debug("SHM port[{d}]: fInUse={} fFlags={x} fName={s}", .{
+                    i, p.fInUse, p.fFlags, 
+                    std.mem.sliceTo(@as([*:0]const u8, @ptrCast(&p.fName)), 0),
+                });
+            }
+        }
+        
+        return result;
     }
 
     fn detach(ctx: *anyopaque) void {

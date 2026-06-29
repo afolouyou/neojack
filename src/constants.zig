@@ -23,13 +23,13 @@ pub const JACK_LOAD_INIT_LIMIT_1: u32 = JACK_LOAD_INIT_LIMIT + 1;
 pub const MAX_PATH: u32 = 256;
 pub const MAX_PATH_1: u32 = MAX_PATH + 1;
 
-pub const PORT_NUM: u32 = 256;
-pub const PORT_NUM_MAX: u32 = 512;
+pub const PORT_NUM: u32 = 2048;
+pub const PORT_NUM_MAX: u32 = 4096;
 pub const DRIVER_PORT_NUM: u32 = 256;
-pub const PORT_NUM_FOR_CLIENT: u32 = 768;
+pub const PORT_NUM_FOR_CLIENT: u32 = 2048;
 pub const FIRST_AVAILABLE_PORT: u32 = 1;
 pub const CONNECTION_NUM_FOR_PORT: u32 = PORT_NUM_FOR_CLIENT;
-pub const CLIENT_NUM: u32 = 64;
+pub const CLIENT_NUM: u32 = 256;
 
 pub const AUDIO_DRIVER_REFNUM: u16 = 0;
 pub const FREEWHEEL_DRIVER_REFNUM: u16 = 1;
