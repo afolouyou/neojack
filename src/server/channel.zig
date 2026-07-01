@@ -12,6 +12,7 @@ const NamedFutex = @import("../shm/named_futex.zig").NamedFutex;
 const Port = @import("../graph/port.zig").Port;
 const GraphManager = @import("../graph/graph_manager.zig").GraphManager;
 const ClientTable = @import("../engine/engine.zig").ClientTable;
+const internal_client = @import("internal_client.zig");
 
 const SHM_ENGINE: i32 = 0;
 const SHM_GRAPH: i32 = 1;
@@ -197,6 +198,13 @@ pub const Channel = struct {
                 .kGetClientByUUID => self.handleGetClientByUUID(client_fd),
                 .kGetUUIDByClient => self.handleGetUUIDByClient(client_fd),
                 .kClientHasSessionCallback => self.handleClientHasSessionCallback(client_fd),
+                .kInternalClientLoad => self.handleInternalClientLoad(client_fd),
+                .kInternalClientUnload => self.handleInternalClientUnload(client_fd),
+                .kInternalClientHandle => self.handleInternalClientHandle(client_fd),
+                .kGetInternalClientName => self.handleGetInternalClientName(client_fd),
+                .kSessionNotify => self.handleSessionNotify(client_fd),
+                .kSessionReply => self.handleSessionReply(client_fd),
+                .kPropertyChangeNotify => self.handlePropertyChangeNotify(client_fd),
                 else => {
                     log.warn("channel", "unhandled request {s}", .{@tagName(ftype)});
                 },
@@ -716,6 +724,92 @@ pub const Channel = struct {
     fn handleClientHasSessionCallback(self: *Self, client_fd: posix.fd_t) void {
         _ = self;
         _ = (readBody(client_fd, request.JackClientHasSessionCallbackRequest) orelse return);
+        const result = request.JackResult{ .fResult = 0 };
+        sendResponse(client_fd, result);
+    }
+
+    fn handleInternalClientLoad(self: *Self, client_fd: posix.fd_t) void {
+        const req = (readBody(client_fd, request.JackInternalClientLoadRequest) orelse return);
+        const name = std.mem.sliceTo(&req.fName, 0);
+        const dll_name = std.mem.sliceTo(&req.fDllName, 0);
+        const load_init = std.mem.sliceTo(&req.fLoadInitName, 0);
+
+        const ct = self.client_table orelse return;
+        const refnum = ct.allocate(name, true, 0) orelse {
+            const err = request.JackInternalClientLoadResult{
+                .fResult = -1, .fStatus = -1, .fIntRefNum = -1,
+            };
+            sendResponse(client_fd, err);
+            return;
+        };
+
+        const int_refnum = internal_client.load(name, dll_name, load_init, null) orelse {
+            ct.free(refnum);
+            const err = request.JackInternalClientLoadResult{
+                .fResult = -1, .fStatus = -1, .fIntRefNum = -1,
+            };
+            sendResponse(client_fd, err);
+            return;
+        };
+
+        const result = request.JackInternalClientLoadResult{
+            .fResult = 0, .fStatus = 0, .fIntRefNum = int_refnum,
+        };
+        sendResponse(client_fd, result);
+
+        var notif = makeNotification(.kAddClient, refnum, refnum, 0);
+        @memcpy(notif.fName[0..name.len], name);
+        self.notifyClients(&notif);
+    }
+
+    fn handleInternalClientUnload(self: *Self, client_fd: posix.fd_t) void {
+        const req = (readBody(client_fd, request.JackInternalClientUnloadRequest) orelse return);
+        const ct = self.client_table orelse return;
+        ct.free(req.fRefNum);
+        _ = internal_client.unload(req.fIntRefNum);
+        const result = request.JackResult{ .fResult = 0 };
+        sendResponse(client_fd, result);
+    }
+
+    fn handleInternalClientHandle(self: *Self, client_fd: posix.fd_t) void {
+        _ = self;
+        _ = (readBody(client_fd, request.JackInternalClientHandleRequest) orelse return);
+        const result = request.JackInternalClientHandleResult{
+            .fResult = 0, .fStatus = 0, .fIntRefNum = -1,
+        };
+        sendResponse(client_fd, result);
+    }
+
+    fn handleGetInternalClientName(self: *Self, client_fd: posix.fd_t) void {
+        _ = self;
+        const req = (readBody(client_fd, request.JackGetInternalClientNameRequest) orelse return);
+        var r = request.JackGetInternalClientNameResult{
+            .fResult = -1, .fName = [_]u8{0} ** c.JACK_CLIENT_NAME_SIZE_1,
+        };
+        if (internal_client.getRefnum(req.fIntRefNum)) |ic| {
+            r.fResult = 0;
+            @memcpy(r.fName[0..], &ic.name);
+        }
+        sendResponse(client_fd, r);
+    }
+
+    fn handleSessionNotify(self: *Self, client_fd: posix.fd_t) void {
+        _ = self;
+        _ = (readBody(client_fd, request.JackSessionNotifyRequest) orelse return);
+        const result = request.JackResult{ .fResult = 0 };
+        sendResponse(client_fd, result);
+    }
+
+    fn handleSessionReply(self: *Self, client_fd: posix.fd_t) void {
+        _ = self;
+        _ = (readBody(client_fd, request.JackSessionReplyRequest) orelse return);
+        const result = request.JackResult{ .fResult = 0 };
+        sendResponse(client_fd, result);
+    }
+
+    fn handlePropertyChangeNotify(self: *Self, client_fd: posix.fd_t) void {
+        _ = self;
+        _ = (readBody(client_fd, request.JackPropertyChangeNotifyRequest) orelse return);
         const result = request.JackResult{ .fResult = 0 };
         sendResponse(client_fd, result);
     }
