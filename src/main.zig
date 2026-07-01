@@ -89,14 +89,14 @@ pub fn main() !void {
         try server.addDriver(alsa_drv.getInterface(), 0, "alsa_pcm", false);
         _ = &alsa_drv;
     } else {
-        var dummy = DummyDriver.init(
+        const iface = try DummyDriver.createWithTimedDriver(
             server.graph_manager,
             server.engine,
             &server.synchro_table,
             server.engine_control,
+            allocator,
         );
-        try server.addDriver(dummy.getInterface(), 0, "dummy", false);
-        _ = &dummy;
+        try server.addDriver(iface, 0, "dummy", true);
     }
 
     // Reserve refnum 0 for the system/driver client so external clients don't

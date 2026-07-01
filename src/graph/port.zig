@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const c = @import("../constants.zig");
 const shm = @import("../shm/layouts.zig");
 
@@ -77,8 +78,15 @@ pub const Port = extern struct {
         const dst = self.getBuffer();
         @memset(dst[0..buffer_size], 0.0);
         for (srcs) |src| {
-            for (dst[0..buffer_size], 0..) |*d, i| {
-                d.* += src[i];
+            var i: usize = 0;
+            while (i + 4 <= buffer_size) : (i += 4) {
+                dst[i] += src[i];
+                dst[i + 1] += src[i + 1];
+                dst[i + 2] += src[i + 2];
+                dst[i + 3] += src[i + 3];
+            }
+            for (i..buffer_size) |j| {
+                dst[j] += src[j];
             }
         }
     }

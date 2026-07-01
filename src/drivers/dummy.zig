@@ -12,6 +12,7 @@ const GraphManager = @import("../graph/graph_manager.zig").GraphManager;
 const Engine = @import("../engine/engine.zig").Engine;
 const EngineControl = @import("../engine/engine.zig").EngineControl;
 const Synchro = @import("../sync/synchro.zig").Synchro;
+const TimedDriver = @import("timed_driver.zig").TimedDriver;
 
 pub const DummyDriver = struct {
     state: AudioDriverState,
@@ -150,5 +151,21 @@ pub const DummyDriver = struct {
 
     pub fn getInterface(self: *Self) DriverInterface {
         return DriverInterface{ .ptr = self, .vtable = &self.vtable };
+    }
+
+    pub fn createWithTimedDriver(
+        graph_manager: *GraphManager,
+        engine: *Engine,
+        synchro_table: []Synchro,
+        engine_control: *EngineControl,
+        allocator: std.mem.Allocator,
+    ) !DriverInterface {
+        const dd = try allocator.create(DummyDriver);
+        dd.* = DummyDriver.init(graph_manager, engine, synchro_table, engine_control);
+        const raw = DriverInterface{ .ptr = dd, .vtable = &dd.vtable };
+        const td = TimedDriver.init(raw, engine_control.fBufferSize, engine_control.fSampleRate);
+        const td_ptr = try allocator.create(TimedDriver);
+        td_ptr.* = td;
+        return td_ptr.getInterface();
     }
 };
