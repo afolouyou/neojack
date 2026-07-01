@@ -11,6 +11,8 @@ const posix = switch (builtin.os.tag) {
     else => @compileError("Unsupported OS"),
 };
 
+const linux = std.os.linux;
+
 const FutexData = extern struct {
     futex: i32,
     internal: bool,
@@ -101,5 +103,38 @@ pub const NamedFutex = struct {
 
     pub fn deinit(self: *Self) void {
         self.destroy();
+    }
+
+    pub fn signal(self: *Self) void {
+        const data = self.ptr orelse return;
+        data.futex = 1;
+        _ = linux.futex_wake(&data.futex, linux.FUTEX.WAKE, 1);
+    }
+
+    pub fn wait(self: *Self) void {
+        const data = self.ptr orelse return;
+        while (true) {
+            if (data.futex != 0) break;
+            _ = linux.futex_wait(&data.futex, linux.FUTEX.WAIT, 0, null);
+        }
+        data.futex = 0;
+    }
+
+    pub fn timedWait(self: *Self, timeout_us: u64) bool {
+        const data = self.ptr orelse return true;
+        if (data.futex != 0) {
+            data.futex = 0;
+            return true;
+        }
+        const ts = linux.timespec{
+            .tv_sec = @as(i64, @intCast(timeout_us / 1_000_000)),
+            .tv_nsec = @as(i64, @intCast((timeout_us % 1_000_000) * 1000)),
+        };
+        _ = linux.futex_wait(&data.futex, linux.FUTEX.WAIT, 0, &ts);
+        if (data.futex != 0) {
+            data.futex = 0;
+            return true;
+        }
+        return false;
     }
 };

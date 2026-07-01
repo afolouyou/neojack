@@ -13,6 +13,7 @@ const jack_time_t = u64;
 const jack_default_audio_sample_t = f32;
 
 const shm = @import("../shm/layouts.zig");
+const NamedFutex = @import("../shm/named_futex.zig").NamedFutex;
 
 pub const EngineControl = struct {
     fBufferSize: u32,
@@ -103,6 +104,8 @@ pub const Engine = struct {
     fSignal: std.Thread.ResetEvent,
     allocator: std.mem.Allocator,
     synchro_table: []Synchro,
+    named_futex_table: []NamedFutex,
+    client_controls: []?*shm.JackClientControl,
     transport: ?TransportEngine,
 
     const Self = @This();
@@ -115,8 +118,15 @@ pub const Engine = struct {
             .fSignal = std.Thread.ResetEvent{},
             .allocator = allocator,
             .synchro_table = synchros,
+            .named_futex_table = &[_]NamedFutex{},
+            .client_controls = &[_]?*shm.JackClientControl{},
             .transport = null,
         };
+    }
+
+    pub fn setClientData(self: *Self, named_futexes: []NamedFutex, controls: []?*shm.JackClientControl) void {
+        self.named_futex_table = named_futexes;
+        self.client_controls = controls;
     }
 
     pub fn setTransport(self: *Self, te: *align(1) shm.JackTransportEngine) void {
@@ -172,14 +182,9 @@ pub const Engine = struct {
         var active_count: usize = 0;
         const timing_slice: []conn.ClientTiming = timings;
         for (timing_slice, 0..) |*t, refnum| {
-            if (t.fStatus == @intFromEnum(conn.ClientStatus.Triggered) or
-                t.fStatus == @intFromEnum(conn.ClientStatus.NotTriggered))
-            {
-                const is_driver = refnum == 0 or refnum == 1;
-                if (!is_driver and t.fStatus == @intFromEnum(conn.ClientStatus.Triggered)) {
-                    active[active_count] = @intCast(refnum);
-                    active_count += 1;
-                }
+            if (t.fStatus == @intFromEnum(conn.ClientStatus.Triggered)) {
+                active[active_count] = @intCast(refnum);
+                active_count += 1;
             }
         }
 
@@ -187,7 +192,6 @@ pub const Engine = struct {
         var order: [c.CLIENT_NUM]u16 = undefined;
         var order_count: usize = 0;
 
-        // Audio driver (refnum 0) and freewheel driver (refnum 1) always first
         if (timings[0].fStatus != @intFromEnum(conn.ClientStatus.NotTriggered)) {
             order[order_count] = 0;
             order_count += 1;
@@ -197,59 +201,66 @@ pub const Engine = struct {
             order_count += 1;
         }
 
-        // Client topological sort
         if (active_count > 0) {
             const sorted = self.fGraphManager.topologicalSort(manager, active[0..active_count], order[order_count..]);
             order_count += sorted;
         }
 
         // Process each client in order
+        const timeout_us = self.fEngineControl.fTimeOutUsecs;
         for (0..order_count) |i| {
             const refnum = order[i];
-            const status = timings[@as(usize, refnum)].fStatus;
+            const idx = @as(usize, refnum);
+            const status = timings[idx].fStatus;
 
-            if (status == @intFromEnum(conn.ClientStatus.NotTriggered)) {
+            if (status == @intFromEnum(conn.ClientStatus.NotTriggered))
                 continue;
-            }
 
+            // Drivers (0, 1): mark finished immediately
             if (refnum == 0 or refnum == 1) {
-                timings[@as(usize, refnum)].fStatus = @intFromEnum(conn.ClientStatus.Finished);
-                const synchro = if (refnum < self.synchro_table.len) &self.synchro_table[@as(usize, refnum)] else null;
-                if (synchro) |s| {
-                    self.fGraphManager.resumeRefNum(@as(usize, refnum), s);
+                timings[idx].fStatus = @intFromEnum(conn.ClientStatus.Finished);
+                if (idx < self.synchro_table.len) {
+                    self.fGraphManager.resumeRefNum(idx, &self.synchro_table[idx]);
                 }
                 continue;
             }
 
+            // External clients: signal via named futex
             if (status == @intFromEnum(conn.ClientStatus.Triggered)) {
-                timings[@as(usize, refnum)].fStatus = @intFromEnum(conn.ClientStatus.Running);
-                timings[@as(usize, refnum)].fSignaledAt = cur_cycle_begin;
+                timings[idx].fStatus = @intFromEnum(conn.ClientStatus.Running);
+                timings[idx].fSignaledAt = cur_cycle_begin;
 
-                if (refnum < self.synchro_table.len) {
-                    const synchro = &self.synchro_table[@as(usize, refnum)];
-                    synchro.signal();
-
-                    timings[@as(usize, refnum)].fAwakeAt = @intCast(std.time.microTimestamp());
+                // Signal client process callback via named futex
+                if (idx < self.named_futex_table.len) {
+                    self.named_futex_table[idx].signal();
                 }
 
-                timings[@as(usize, refnum)].fFinishedAt = @intCast(std.time.microTimestamp());
-                timings[@as(usize, refnum)].fStatus = @intFromEnum(conn.ClientStatus.Finished);
+                // Wait for client to complete
+                if (idx < self.named_futex_table.len) {
+                    if (timeout_us > 0) {
+                        _ = self.named_futex_table[idx].timedWait(timeout_us);
+                    } else {
+                        self.named_futex_table[idx].wait();
+                    }
+                }
 
-                const synchro = if (refnum < self.synchro_table.len) &self.synchro_table[@as(usize, refnum)] else null;
-                if (synchro) |s| {
-                    self.fGraphManager.resumeRefNum(@as(usize, refnum), s);
+                timings[idx].fAwakeAt = @intCast(std.time.microTimestamp());
+                timings[idx].fFinishedAt = @intCast(std.time.microTimestamp());
+                timings[idx].fStatus = @intFromEnum(conn.ClientStatus.Finished);
+
+                if (idx < self.synchro_table.len) {
+                    self.fGraphManager.resumeRefNum(idx, &self.synchro_table[idx]);
                 }
             }
         }
 
-        // Check XRun: clients that didn't finish or finished too late
-        const timeout_us = self.fEngineControl.fTimeOutUsecs;
+        // Check XRun
         if (timeout_us > 0) {
             for (timing_slice, 0..) |*t, refnum| {
                 if (refnum == 0 or refnum == 1) continue;
-                const status = t.fStatus;
-                if (status != @intFromEnum(conn.ClientStatus.NotTriggered) and
-                    status != @intFromEnum(conn.ClientStatus.Finished))
+                const st = t.fStatus;
+                if (st != @intFromEnum(conn.ClientStatus.NotTriggered) and
+                    st != @intFromEnum(conn.ClientStatus.Finished))
                 {
                     const elapsed = cur_cycle_begin -| t.fSignaledAt;
                     if (elapsed > timeout_us) {

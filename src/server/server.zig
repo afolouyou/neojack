@@ -324,6 +324,9 @@ pub const Server = struct {
             self.graph_shm.?,
         );
 
+        // Pass client data to engine (named futexes + controls)
+        self.engine.setClientData(&self.channel.synchro_table, &self.channel.client_controls);
+
         if (self.freewheel_driver) |*fw| {
             _ = fw.open();
         }
