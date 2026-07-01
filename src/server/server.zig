@@ -2,6 +2,9 @@ const std = @import("std");
 const c = @import("../constants.zig");
 const request = @import("../protocol/request.zig");
 const log = @import("../log.zig");
+const os = @cImport({
+    @cInclude("sched.h");
+});
 
 const Engine = @import("../engine/engine.zig").Engine;
 const EngineControl = @import("../engine/engine.zig").EngineControl;
@@ -362,6 +365,15 @@ pub const Server = struct {
     }
 
     fn rtThread(self: *Self) void {
+        // Set SCHED_FIFO for RT priority
+        const prio = self.engine_control.fServerPriority;
+        var sched_param: os.struct_sched_param = .{ .sched_priority = prio };
+        if (os.sched_setscheduler(0, os.SCHED_FIFO, &sched_param) != 0) {
+            log.warn("server", "SCHED_FIFO failed (not running as root?)", .{});
+        } else {
+            log.debug("server", "SCHED_FIFO priority={d}", .{prio});
+        }
+
         var read_fns: [MAX_DRIVERS]?*const fn (*anyopaque) bool = undefined;
         var write_fns: [MAX_DRIVERS]?*const fn (*anyopaque) bool = undefined;
         var wait_fns: [MAX_DRIVERS]?*const fn (*anyopaque) bool = undefined;

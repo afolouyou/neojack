@@ -165,9 +165,27 @@ pub const Channel = struct {
     fn handleClient(self: *Self, client_fd: posix.fd_t) void {
         defer posix.close(client_fd);
 
+        var idle_count: u32 = 0;
+
         while (true) {
             var ftype_raw: u32 = undefined;
             const hdr_bytes = std.mem.asBytes(&ftype_raw);
+
+            // Poll with 1s timeout to detect stale clients
+            var poll_fds = [_]posix.pollfd{
+                .{ .fd = client_fd, .events = posix.POLL.IN, .revents = 0 },
+            };
+            const poll_rc = posix.poll(&poll_fds, 1000) catch break;
+            if (poll_rc == 0) {
+                idle_count += 1;
+                if (idle_count > 30) { // 30s without data = client dead
+                    log.warn("channel", "client timeout, closing", .{});
+                    break;
+                }
+                continue;
+            }
+            idle_count = 0;
+
             if ((readFull(client_fd, hdr_bytes) catch break) != 4) break;
             log.debug("channel", "recv ftype={}", .{ftype_raw});
             if (ftype_raw > 40) {

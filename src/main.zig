@@ -1,6 +1,10 @@
 const std = @import("std");
 const c = @import("constants.zig");
 const log = @import("log.zig");
+const os = @cImport({
+    @cInclude("sys/mman.h");
+    @cInclude("sched.h");
+});
 
 const Server = @import("server/server.zig").Server;
 const DummyDriver = @import("drivers/dummy.zig").DummyDriver;
@@ -110,6 +114,13 @@ pub fn main() !void {
 
     log.info("server", "ready — {s}:{d}Hz/{d} frames", .{ server_name, sample_rate, buffer_size });
     log.info("server", "Ctrl+C to stop", .{});
+
+    // Lock memory to prevent RT page faults
+    if (os.mlockall(os.MCL_CURRENT | os.MCL_FUTURE) != 0) {
+        log.warn("server", "mlockall failed (not running as root?)", .{});
+    } else {
+        log.debug("server", "memory locked", .{});
+    }
 
     // Signal handling
     const sigaction = std.posix.Sigaction{
