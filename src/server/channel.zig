@@ -672,13 +672,24 @@ pub const Channel = struct {
     }
 
     fn handleSetTimeBaseClient(self: *Self, client_fd: posix.fd_t) void {
+        const req = (readBody(client_fd, request.JackSetTimebaseCallbackRequest) orelse return);
+        if (self.engine_shm) |ec| {
+            ec.fTransport.fTimeBaseMaster = req.fRefNum;
+            ec.fTransport.fConditionnal = req.fConditional != 0;
+            log.info("transport", "timebase master: refnum={d}", .{req.fRefNum});
+        }
         const result = request.JackResult{ .fResult = 0 };
-        _ = .{self, client_fd, result};
+        sendResponse(client_fd, result);
     }
 
     fn handleReleaseTimebase(self: *Self, client_fd: posix.fd_t) void {
+        if (self.engine_shm) |ec| {
+            ec.fTransport.fTimeBaseMaster = -1;
+            ec.fTransport.fConditionnal = false;
+            log.info("transport", "timebase master released", .{});
+        }
         const result = request.JackResult{ .fResult = 0 };
-        _ = .{self, client_fd, result};
+        sendResponse(client_fd, result);
     }
 
     fn handleReserveClientName(self: *Self, client_fd: posix.fd_t) void {

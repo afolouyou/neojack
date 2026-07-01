@@ -6,10 +6,13 @@ const GraphManager = @import("../graph/graph_manager.zig").GraphManager;
 const ConnectionManager = @import("../graph/connection_manager.zig").ConnectionManager;
 const conn = @import("../graph/connection_manager.zig");
 const Synchro = @import("../sync/synchro.zig").Synchro;
+const TransportEngine = @import("transport.zig").TransportEngine;
 
 const jack_nframes_t = u32;
 const jack_time_t = u64;
 const jack_default_audio_sample_t = f32;
+
+const shm = @import("../shm/layouts.zig");
 
 pub const EngineControl = struct {
     fBufferSize: u32,
@@ -100,6 +103,7 @@ pub const Engine = struct {
     fSignal: std.Thread.ResetEvent,
     allocator: std.mem.Allocator,
     synchro_table: []Synchro,
+    transport: ?TransportEngine,
 
     const Self = @This();
 
@@ -111,13 +115,22 @@ pub const Engine = struct {
             .fSignal = std.Thread.ResetEvent{},
             .allocator = allocator,
             .synchro_table = synchros,
+            .transport = null,
         };
+    }
+
+    pub fn setTransport(self: *Self, te: *align(1) shm.JackTransportEngine) void {
+        self.transport = TransportEngine.init(te);
     }
 
     pub fn process(self: *Self, cur_cycle_begin: u64, prev_cycle_end: u64) bool {
         var res = true;
 
         self.fEngineControl.cycleBegin(self.fGraphManager, cur_cycle_begin, prev_cycle_end);
+
+        if (self.transport) |*t| {
+            t.cycleBegin(self.fEngineControl.fSampleRate, cur_cycle_begin);
+        }
 
         if (self.fGraphManager.isFinishedGraph()) {
             self.processNext(cur_cycle_begin);
@@ -131,6 +144,10 @@ pub const Engine = struct {
                 self.processCurrent(cur_cycle_begin);
                 res = false;
             }
+        }
+
+        if (self.transport) |*t| {
+            t.cycleEnd(self.fEngineControl.fBufferSize);
         }
 
         self.fEngineControl.cycleEnd();

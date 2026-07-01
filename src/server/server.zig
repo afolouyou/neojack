@@ -301,6 +301,11 @@ pub const Server = struct {
 
         log.info("shm", "segments created, registry ready", .{});
 
+        // Init transport engine
+        if (self.engine_shm) |ec| {
+            self.engine.setTransport(&ec.fTransport);
+        }
+
         // Pass SHM references to channel for client handling
         self.channel.setShmContext(
             &self.shm_helper,
