@@ -1,6 +1,8 @@
+const Synchro = @import("synchro.zig").Synchro;
+
 pub const ActivationCount = extern struct {
-    fValue: i64 align(1),
-    fCount: i64 align(1),
+    fValue: i32 align(1),
+    fCount: i32 align(1),
 
     const Self = @This();
 
@@ -16,7 +18,7 @@ pub const ActivationCount = extern struct {
     }
 
     pub fn getValue(self: *const Self) i32 {
-        return @as(i32, @truncate(self.fValue));
+        return self.fValue;
     }
 
     pub fn incValue(self: *Self) void {
@@ -31,14 +33,16 @@ pub const ActivationCount = extern struct {
         self.fValue = self.fCount;
     }
 
-    pub fn signal(self: *Self, synchro: anytype) bool {
+    pub fn signalSynchro(self: *Self, synchro: *Synchro) bool {
         if (self.fValue == 0) {
-            return synchro.signal();
+            synchro.signal();
+            return true;
         }
 
         self.fValue -= 1;
-        if (self.fValue == 1) {
-            return synchro.signal();
+        if (self.fValue == 0) {
+            synchro.signal();
+            return true;
         }
 
         return true;

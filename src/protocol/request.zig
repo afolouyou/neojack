@@ -41,7 +41,7 @@ pub const RequestType = enum(u32) {
 // Field order matches JACK2 JackRequestImpl::WritePacket calls exactly.
 // Wire body size = sum of all field @sizeOf values (no padding).
 
-pub const JackClientCheckRequest = struct {
+pub const JackClientCheckRequest = extern struct {
     fName: [c.JACK_CLIENT_NAME_SIZE_1]u8,
     fProtocol: i32,
     fOptions: i32,
@@ -49,26 +49,26 @@ pub const JackClientCheckRequest = struct {
     fOpen: i32,
 };
 
-pub const JackClientOpenRequest = struct {
+pub const JackClientOpenRequest = extern struct {
     fPID: i32,
     fUUID: u64,
     fName: [c.JACK_CLIENT_NAME_SIZE_1]u8,
 };
 
-pub const JackClientCloseRequest = struct {
+pub const JackClientCloseRequest = extern struct {
     fRefNum: i32,
 };
 
-pub const JackActivateRequest = struct {
+pub const JackActivateRequest = extern struct {
     fRefNum: i32,
     fIsRealTime: i32,
 };
 
-pub const JackDeactivateRequest = struct {
+pub const JackDeactivateRequest = extern struct {
     fRefNum: i32,
 };
 
-pub const JackPortRegisterRequest = struct {
+pub const JackPortRegisterRequest = extern struct {
     fRefNum: i32,
     fName: [c.JACK_PORT_NAME_SIZE_1]u8,
     fPortType: [c.JACK_PORT_TYPE_SIZE_1]u8,
@@ -76,71 +76,71 @@ pub const JackPortRegisterRequest = struct {
     fBufferSize: u32,
 };
 
-pub const JackPortUnRegisterRequest = struct {
+pub const JackPortUnRegisterRequest = extern struct {
     fRefNum: i32,
     fPortIndex: u32,
 };
 
-pub const JackPortConnectRequest = struct {
+pub const JackPortConnectRequest = extern struct {
     fRefNum: i32,
     fSrc: u32,
     fDst: u32,
 };
 
-pub const JackPortDisconnectRequest = struct {
+pub const JackPortDisconnectRequest = extern struct {
     fRefNum: i32,
     fSrc: u32,
     fDst: u32,
 };
 
-pub const JackPortConnectNameRequest = struct {
+pub const JackPortConnectNameRequest = extern struct {
     fRefNum: i32,
     fSrc: [c.REAL_JACK_PORT_NAME_SIZE_1]u8,
     fDst: [c.REAL_JACK_PORT_NAME_SIZE_1]u8,
 };
 
-pub const JackPortDisconnectNameRequest = struct {
+pub const JackPortDisconnectNameRequest = extern struct {
     fRefNum: i32,
     fSrc: [c.REAL_JACK_PORT_NAME_SIZE_1]u8,
     fDst: [c.REAL_JACK_PORT_NAME_SIZE_1]u8,
 };
 
-pub const JackPortRenameRequest = struct {
+pub const JackPortRenameRequest = extern struct {
     fRefNum: i32,
     fPort: u32,
     fName: [c.JACK_PORT_NAME_SIZE_1]u8,
 };
 
-pub const JackSetBufferSizeRequest = struct {
+pub const JackSetBufferSizeRequest = extern struct {
     fBufferSize: u32,
 };
 
-pub const JackSetFreeWheelRequest = struct {
+pub const JackSetFreeWheelRequest = extern struct {
     fOnOff: i32,
 };
 
-pub const JackComputeTotalLatenciesRequest = struct {};
+pub const JackComputeTotalLatenciesRequest = extern struct {};
 
-pub const JackReleaseTimebaseRequest = struct {
+pub const JackReleaseTimebaseRequest = extern struct {
     fRefNum: i32,
 };
 
-pub const JackSetTimebaseCallbackRequest = struct {
+pub const JackSetTimebaseCallbackRequest = extern struct {
     fRefNum: i32,
     fConditional: i32,
 };
 
-pub const JackGetInternalClientNameRequest = struct {
+pub const JackGetInternalClientNameRequest = extern struct {
     fRefNum: i32,
     fIntRefNum: i32,
 };
 
-pub const JackInternalClientHandleRequest = struct {
+pub const JackInternalClientHandleRequest = extern struct {
     fRefNum: i32,
     fName: [c.JACK_CLIENT_NAME_SIZE_1]u8,
 };
 
-pub const JackInternalClientLoadRequest = struct {
+pub const JackInternalClientLoadRequest = extern struct {
     fRefNum: i32,
     fName: [c.JACK_CLIENT_NAME_SIZE_1]u8,
     fDllName: [c.JACK_PORT_NAME_SIZE_1]u8,
@@ -149,47 +149,47 @@ pub const JackInternalClientLoadRequest = struct {
     fUUID: u64,
 };
 
-pub const JackInternalClientUnloadRequest = struct {
+pub const JackInternalClientUnloadRequest = extern struct {
     fRefNum: i32,
     fIntRefNum: i32,
 };
 
-pub const JackClientNotificationRequest = struct {
+pub const JackClientNotificationRequest = extern struct {
     fRefNum: i32,
     fNotify: i32,
     fValue: i32,
 };
 
-pub const JackSessionNotifyRequest = struct {
+pub const JackSessionNotifyRequest = extern struct {
     fRefNum: i32,
     fPath: [c.JACK_PORT_NAME_SIZE_1]u8,
     fDst: [c.JACK_CLIENT_NAME_SIZE_1]u8,
     fEventType: i32,
 };
 
-pub const JackSessionReplyRequest = struct {
+pub const JackSessionReplyRequest = extern struct {
     fRefNum: i32,
 };
 
-pub const JackGetUUIDRequest = struct {
+pub const JackGetUUIDRequest = extern struct {
     fName: [c.JACK_CLIENT_NAME_SIZE_1]u8,
 };
 
-pub const JackGetClientNameRequest = struct {
+pub const JackGetClientNameRequest = extern struct {
     fUUID: [c.JACK_UUID_STRING_SIZE]u8,
 };
 
-pub const JackReserveNameRequest = struct {
+pub const JackReserveNameRequest = extern struct {
     fRefNum: i32,
     fName: [c.JACK_CLIENT_NAME_SIZE_1]u8,
     fUUID: [c.JACK_UUID_STRING_SIZE]u8,
 };
 
-pub const JackClientHasSessionCallbackRequest = struct {
+pub const JackClientHasSessionCallbackRequest = extern struct {
     fName: [c.JACK_CLIENT_NAME_SIZE_1]u8,
 };
 
-pub const JackPropertyChangeNotifyRequest = struct {
+pub const JackPropertyChangeNotifyRequest = extern struct {
     fSubject: u64,
     fKey: [c.JACK_PORT_NAME_SIZE_1]u8,
     fChange: i32,
@@ -198,56 +198,56 @@ pub const JackPropertyChangeNotifyRequest = struct {
 // Response/Result structs — data only, no header.
 // JACK2 responses have NO fType/fDataSize header; they start with fResult directly.
 
-pub const JackResult = struct {
+pub const JackResult = extern struct {
     fResult: i32,
 };
 
-pub const JackClientCheckResult = struct {
+pub const JackClientCheckResult = extern struct {
     fResult: i32,
     fName: [c.JACK_CLIENT_NAME_SIZE_1]u8,
     fStatus: i32,
 };
 
-pub const JackClientOpenResult = struct {
+pub const JackClientOpenResult = extern struct {
     fResult: i32,
     fSharedEngine: i32,
     fSharedClient: i32,
     fSharedGraph: i32,
 };
 
-pub const JackPortRegisterResult = struct {
+pub const JackPortRegisterResult = extern struct {
     fResult: i32,
     fPortIndex: u32,
 };
 
-pub const JackGetInternalClientNameResult = struct {
+pub const JackGetInternalClientNameResult = extern struct {
     fResult: i32,
     fName: [c.JACK_CLIENT_NAME_SIZE_1]u8,
 };
 
-pub const JackInternalClientHandleResult = struct {
+pub const JackInternalClientHandleResult = extern struct {
     fResult: i32,
     fStatus: i32,
     fIntRefNum: i32,
 };
 
-pub const JackInternalClientLoadResult = struct {
+pub const JackInternalClientLoadResult = extern struct {
     fResult: i32,
     fStatus: i32,
     fIntRefNum: i32,
 };
 
-pub const JackInternalClientUnloadResult = struct {
+pub const JackInternalClientUnloadResult = extern struct {
     fResult: i32,
     fStatus: i32,
 };
 
-pub const JackClientNameResult = struct {
+pub const JackClientNameResult = extern struct {
     fResult: i32,
     fName: [c.JACK_CLIENT_NAME_SIZE_1]u8,
 };
 
-pub const JackUUIDResult = struct {
+pub const JackUUIDResult = extern struct {
     fResult: i32,
     fUUID: [c.JACK_UUID_STRING_SIZE]u8,
 };
@@ -291,7 +291,7 @@ pub const JackClientNotification = extern struct {
     }
 };
 
-pub const JackSessionCommand = struct {
+pub const JackSessionCommand = extern struct {
     fUUID: [c.JACK_UUID_STRING_SIZE]u8,
     fClientName: [c.JACK_CLIENT_NAME_SIZE_1]u8,
     fCommand: [c.JACK_SESSION_COMMAND_SIZE + 1]u8,

@@ -1,6 +1,7 @@
 const std = @import("std");
 const c = @import("../constants.zig");
 const shm = @import("../shm/layouts.zig");
+const log = @import("../log.zig");
 
 const driver = @import("driver.zig");
 const DriverInterface = driver.DriverInterface;
@@ -66,17 +67,17 @@ pub const DummyDriver = struct {
 
     fn attach(ctx: *anyopaque) bool {
         const self: *Self = @ptrCast(@alignCast(ctx));
-        std.log.debug("dummy attach: refnum={d} gm_shm={any}", .{ self.state.refnum, self.state.graph_manager.gm_shm });
+        log.debug("dummy", "attach refnum={d}", .{self.state.refnum});
         const result = self.state.attachPorts();
-        std.log.debug("dummy attach result: {}", .{result});
+        log.debug("dummy", "attach result={}", .{result});
         
         // Debug: check SHM port array
         if (self.state.graph_manager.gm_shm) |gm| {
             const shm_ports: [*]shm.JackPort = @ptrCast(&gm.fPortArray);
             for (0..4) |i| {
                 const p = &shm_ports[i];
-                std.log.debug("SHM port[{d}]: fInUse={} fFlags={x} fName={s}", .{
-                    i, p.fInUse, p.fFlags, 
+                log.debug("dummy", "SHM port[{d}]: inUse={} flags=0x{x} name={s}", .{
+                    i, p.fInUse, p.fFlags,
                     std.mem.sliceTo(@as([*:0]const u8, @ptrCast(&p.fName)), 0),
                 });
             }
@@ -107,13 +108,13 @@ pub const DummyDriver = struct {
     fn start(ctx: *anyopaque) void {
         const self: *Self = @ptrCast(@alignCast(ctx));
         self.state.is_running = true;
-        std.log.info("Dummy driver started (2 channels)", .{});
+        log.info("dummy", "started (2ch)", .{});
     }
 
     fn stop(ctx: *anyopaque) void {
         const self: *Self = @ptrCast(@alignCast(ctx));
         self.state.is_running = false;
-        std.log.info("Dummy driver stopped", .{});
+        log.info("dummy", "stopped", .{});
     }
 
     fn read(_: *anyopaque) bool {

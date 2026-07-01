@@ -1,5 +1,6 @@
 const std = @import("std");
 const c = @import("../constants.zig");
+const log = @import("../log.zig");
 
 const driver = @import("driver.zig");
 const DriverInterface = driver.DriverInterface;
@@ -116,7 +117,7 @@ pub const AlsaDriver = struct {
         var pb: ?*alsa.snd_pcm_t = null;
         var rc = alsa.snd_pcm_open(&pb, @ptrCast(&self.alsa_device), alsa.SND_PCM_STREAM_PLAYBACK, 0);
         if (rc < 0) {
-            std.log.err("ALSA playback open failed for {s}: {s}", .{ @as([]const u8, &self.alsa_device), alsa.snd_strerror(rc) });
+            log.err("alsa", "playback open failed: {s}", .{alsa.snd_strerror(rc)});
             return false;
         }
         self.playback_handle = pb;
@@ -125,7 +126,7 @@ pub const AlsaDriver = struct {
         var cap: ?*alsa.snd_pcm_t = null;
         rc = alsa.snd_pcm_open(&cap, @ptrCast(&self.alsa_device), alsa.SND_PCM_STREAM_CAPTURE, 0);
         if (rc < 0) {
-            std.log.err("ALSA capture open failed for {s}: {s}", .{ @as([]const u8, &self.alsa_device), alsa.snd_strerror(rc) });
+            log.err("alsa", "capture open failed: {s}", .{alsa.snd_strerror(rc)});
             _ = alsa.snd_pcm_close(pb);
             self.playback_handle = null;
             return false;
@@ -215,7 +216,7 @@ pub const AlsaDriver = struct {
     fn startFn(ctx: *anyopaque) void {
         const self: *Self = @ptrCast(@alignCast(ctx));
         self.state.is_running = true;
-        std.log.info("ALSA driver started ({s})", .{@as([]const u8, &self.alsa_device)});
+        log.info("alsa", "started ({s})", .{@as([]const u8, &self.alsa_device)});
     }
 
     fn stopFn(ctx: *anyopaque) void {
@@ -228,7 +229,7 @@ pub const AlsaDriver = struct {
         if (self.capture_handle) |pcm| {
             _ = alsa.snd_pcm_drop(pcm);
         }
-        std.log.info("ALSA driver stopped ({s})", .{@as([]const u8, &self.alsa_device)});
+        log.info("alsa", "stopped ({s})", .{@as([]const u8, &self.alsa_device)});
     }
 
     fn waitFn(ctx: *anyopaque) bool {

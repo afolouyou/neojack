@@ -7,7 +7,7 @@ const linux = switch (builtin.os.tag) {
 };
 
 pub const Synchro = struct {
-    futex_word: u32,
+    futex_word: i32,
     signaled: bool,
 
     const Self = @This();
@@ -19,30 +19,15 @@ pub const Synchro = struct {
         };
     }
 
-    pub fn signal(self: *Self) bool {
-        if (self.signaled) return true;
+    pub fn signal(self: *Self) void {
+        if (self.signaled) return;
         self.signaled = true;
-        _ = linux.futex(
-            &self.futex_word,
-            linux.FUTEX.WAKE,
-            1,
-            null,
-            null,
-            0,
-        );
-        return true;
+        _ = linux.futex_wake(&self.futex_word, linux.FUTEX.WAKE, 1);
     }
 
     pub fn wait(self: *Self) void {
         while (!self.signaled) {
-            _ = linux.futex(
-                &self.futex_word,
-                linux.FUTEX.WAIT,
-                0,
-                null,
-                null,
-                0,
-            );
+            _ = linux.futex_wait(&self.futex_word, linux.FUTEX.WAIT, 0, null);
         }
     }
 
@@ -54,15 +39,8 @@ pub const Synchro = struct {
             .tv_nsec = @as(i64, @intCast((timeout_usecs % 1_000_000) * 1000)),
         };
 
-        const rc = linux.futex(
-            &self.futex_word,
-            linux.FUTEX.WAIT,
-            0,
-            &ts,
-            null,
-            0,
-        );
-        return (rc == 0) or self.signaled;
+        _ = linux.futex_wait(&self.futex_word, linux.FUTEX.WAIT, 0, &ts);
+        return self.signaled;
     }
 
     pub fn reset(self: *Self) void {

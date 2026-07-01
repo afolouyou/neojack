@@ -1,5 +1,6 @@
 const std = @import("std");
 const builtin = @import("builtin");
+const log = @import("../log.zig");
 
 const c = @import("../constants.zig");
 
@@ -108,7 +109,7 @@ pub const DeviceMonitor = struct {
             .revents = 0,
         };
 
-        std.log.info("Device monitor started", .{});
+        log.info("hotplug", "monitor started", .{});
 
         while (self.running) {
             const rc = udev.poll(&pollfd, 1, 500);
@@ -120,7 +121,7 @@ pub const DeviceMonitor = struct {
             }
         }
 
-        std.log.info("Device monitor stopped", .{});
+        log.info("hotplug", "monitor stopped", .{});
     }
 
     fn handleDeviceEvent(self: *Self) void {
@@ -179,7 +180,7 @@ pub const DeviceMonitor = struct {
             info.card_index = std.fmt.parseInt(i32, sysname[4..], 10) catch 0;
         }
 
-        std.log.info("Device {s}: {s} ({s})", .{
+        log.info("hotplug", "{s}: {s} ({s})", .{
             @tagName(info.action),
             info.sysname[0..std.mem.indexOfScalar(u8, &info.sysname, 0) orelse info.sysname.len],
             info.product_name[0..std.mem.indexOfScalar(u8, &info.product_name, 0) orelse info.product_name.len],

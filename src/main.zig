@@ -1,5 +1,6 @@
 const std = @import("std");
 const c = @import("constants.zig");
+const log = @import("log.zig");
 
 const Server = @import("server/server.zig").Server;
 const DummyDriver = @import("drivers/dummy.zig").DummyDriver;
@@ -11,8 +12,6 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
-
-    std.log.info("njackd v{} — NeoJack Daemon", .{std.SemanticVersion{ .major = 0, .minor = 1, .patch = 0 }});
 
     var server_name: []const u8 = "default";
     const rt = true;
@@ -51,6 +50,11 @@ pub fn main() !void {
             return;
         }
     }
+
+    log.init(verbose, null);
+    defer log.deinit();
+
+    log.info("server", "njackd v0.1.0 starting", .{});
 
     var server = try Server.init(
         allocator,
@@ -98,14 +102,14 @@ pub fn main() !void {
     // Reserve refnum 0 for the system/driver client so external clients don't
     // collide with the driver's ports (created with refnum=0 in attachPorts).
     _ = server.client_table.allocate("system", true, 0) orelse {
-        std.log.err("Failed to reserve system client refnum 0", .{});
+        log.err("server", "failed to reserve system client", .{});
         return error.SystemClientReservationFailed;
     };
 
     try server.start();
 
-    std.log.info("njackd ready — {s}:{d}Hz/{d} frames", .{ server_name, sample_rate, buffer_size });
-    std.log.info("Press Ctrl+C to stop", .{});
+    log.info("server", "ready — {s}:{d}Hz/{d} frames", .{ server_name, sample_rate, buffer_size });
+    log.info("server", "Ctrl+C to stop", .{});
 
     // Signal handling
     const sigaction = std.posix.Sigaction{
@@ -123,7 +127,7 @@ pub fn main() !void {
 
     std.log.info("Stopping...", .{});
     server.stop();
-    std.log.info("njackd stopped", .{});
+    log.info("server", "stopped", .{});
 }
 
 fn handleSignal(_: i32) callconv(.C) void {

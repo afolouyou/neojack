@@ -1,6 +1,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const posix = std.posix;
+const log = @import("../log.zig");
 
 const c = @import("../constants.zig");
 const request = @import("../protocol/request.zig");
@@ -40,6 +41,9 @@ pub const Channel = struct {
     // Named futex synchronisation per client (indexed by refnum)
     synchro_table: [CLIENT_NUM]NamedFutex,
 
+    // Client control SHM pointers (for setting fActive etc.)
+    client_controls: [CLIENT_NUM]?*shm.JackClientControl,
+
     const Self = @This();
 
     pub fn init(allocator: std.mem.Allocator, server_name: []const u8) Self {
@@ -57,6 +61,7 @@ pub const Channel = struct {
             .notify_sockets = .{},
             .notify_mutex = .{},
             .synchro_table = [_]NamedFutex{NamedFutex.init()} ** CLIENT_NUM,
+            .client_controls = [_]?*shm.JackClientControl{null} ** CLIENT_NUM,
         };
     }
 
@@ -163,9 +168,9 @@ pub const Channel = struct {
             var ftype_raw: u32 = undefined;
             const hdr_bytes = std.mem.asBytes(&ftype_raw);
             if ((readFull(client_fd, hdr_bytes) catch break) != 4) break;
-            std.log.debug("recv ftype={}", .{ftype_raw});
+            log.debug("channel", "recv ftype={}", .{ftype_raw});
             if (ftype_raw > 40) {
-                std.log.warn("invalid ftype_raw={}", .{ftype_raw});
+                log.warn("channel", "invalid ftype={}", .{ftype_raw});
                 break;
             }
             const ftype: request.RequestType = @enumFromInt(ftype_raw);
@@ -180,8 +185,20 @@ pub const Channel = struct {
                 .kUnRegisterPort => self.handleUnRegisterPort(client_fd),
                 .kConnectPorts => self.handleConnectPorts(client_fd),
                 .kDisconnectPorts => self.handleDisconnectPorts(client_fd),
+                .kConnectNamePorts => self.handleConnectNamePorts(client_fd),
+                .kDisconnectNamePorts => self.handleDisconnectNamePorts(client_fd),
+                .kPortRename => self.handlePortRename(client_fd),
+                .kSetBufferSize => self.handleSetBufferSize(client_fd),
+                .kComputeTotalLatencies => self.handleComputeTotalLatencies(client_fd),
+                .kSetFreeWheel => self.handleSetFreeWheel(client_fd),
+                .kSetTimeBaseClient => self.handleSetTimeBaseClient(client_fd),
+                .kReleaseTimebase => self.handleReleaseTimebase(client_fd),
+                .kReserveClientName => self.handleReserveClientName(client_fd),
+                .kGetClientByUUID => self.handleGetClientByUUID(client_fd),
+                .kGetUUIDByClient => self.handleGetUUIDByClient(client_fd),
+                .kClientHasSessionCallback => self.handleClientHasSessionCallback(client_fd),
                 else => {
-                    std.log.warn("Unhandled request type: {s}", .{@tagName(ftype)});
+                    log.warn("channel", "unhandled request {s}", .{@tagName(ftype)});
                 },
             }
         }
@@ -217,13 +234,13 @@ pub const Channel = struct {
             posix.close(self.notify_sockets.items[idx]);
         }
         self.notify_sockets.items[idx] = fd;
-        std.log.info("Notification socket connected to {s}", .{path_buf});
+        log.debug("channel", "notify socket connected to {s}", .{path_buf});
     }
 
     fn handleClientCheck(self: *Self, client_fd: posix.fd_t) void {
-        std.log.debug("handleClientCheck", .{});
+        log.debug("channel", "handleClientCheck", .{});
         const req = (readBody(client_fd, request.JackClientCheckRequest) orelse {
-            std.log.debug("readBody failed", .{});
+            log.debug("channel", "readBody failed", .{});
             return;
         });
 
@@ -293,19 +310,25 @@ pub const Channel = struct {
         client_control.fPID = req.fPID;
         client_control.fActive = false;
 
+        // Store pointer for later activation
+        const idx = @as(usize, @intCast(@max(refnum, 0)));
+        if (idx < self.client_controls.len) {
+            self.client_controls[idx] = client_control;
+        }
+
         // Register client SHM in registry
         {
             var full_name_buf: [256]u8 = undefined;
             if (std.fmt.bufPrint(&full_name_buf, "/jack_{s}_{d}_shm_{s}", .{ shm_helper.server_name, shm_helper.pid, seg_name })) |full_name| {
                 registry.registerShmSegment(client_shm_idx, full_name, client_size) catch {
-                    std.log.err("Failed to register client SHM in registry", .{});
+                    log.err("channel", "Failed to register client SHM in registry", .{});
                 };
             } else |_| {}
         }
 
         // Allocate named futex for client synchronisation
         self.synchro_table[@as(usize, @intCast(refnum))].allocate(name, self.server_name, 0) catch {
-            std.log.err("Failed to allocate named futex for client {s}", .{name});
+            log.err("channel", "Failed to allocate named futex for client {s}", .{name});
             registry.clearRegistryEntry(client_shm_idx);
             SharedMemory.unmapMemory(client_ptr, client_size);
             SharedMemory.closeFd(client_fd_shm);
@@ -327,7 +350,7 @@ pub const Channel = struct {
         };
         sendResponse(client_fd, result);
 
-        std.log.info("Client opened: {s} (refnum {d})", .{ name, refnum });
+        log.info("channel", "Client opened: {s} (refnum {d})", .{ name, refnum });
 
         // Notify all clients about new client
         var notif = makeNotification(.kAddClient, refnum, refnum, 0);
@@ -336,20 +359,20 @@ pub const Channel = struct {
     }
 
     fn handleClientClose(self: *Self, client_fd: posix.fd_t) void {
-        std.log.debug("handleClientClose: reading body", .{});
+        log.debug("channel", "handleClientClose: reading body", .{});
         const req = (readBody(client_fd, request.JackClientCloseRequest) orelse {
-            std.log.err("handleClientClose: readBody failed", .{});
+            log.err("channel", "handleClientClose: readBody failed", .{});
             return;
         });
-        std.log.debug("handleClientClose: got fRefNum={d}", .{req.fRefNum});
+        log.debug("channel", "handleClientClose: got fRefNum={d}", .{req.fRefNum});
 
         // Send response IMMEDIATELY to avoid client timeout/broken pipe
-        std.log.debug("handleClientClose: sending response immediately", .{});
+        log.debug("channel", "handleClientClose: sending response immediately", .{});
         const result = request.JackResult{ .fResult = 0 };
         sendResponse(client_fd, result);
 
         const ct = self.client_table orelse {
-            std.log.err("handleClientClose: no client table", .{});
+            log.err("channel", "handleClientClose: no client table", .{});
             return;
         };
 
@@ -359,23 +382,29 @@ pub const Channel = struct {
             @memcpy(client_name[0..], &entry.name);
         }
 
-        std.log.debug("handleClientClose: freeing client", .{});
+        log.debug("channel", "handleClientClose: freeing client", .{});
         ct.free(req.fRefNum);
+
+        // Clear client control pointer
+        const close_idx = @as(usize, @intCast(@max(req.fRefNum, 0)));
+        if (close_idx < self.client_controls.len) {
+            self.client_controls[close_idx] = null;
+        }
 
         const shm_helper = self.shm_helper orelse return;
         const client_shm_idx = SHM_CLIENT_BASE + req.fRefNum;
         var name_buf: [16]u8 = undefined;
         const seg_name = std.fmt.bufPrint(&name_buf, "{d}", .{client_shm_idx}) catch return;
-        std.log.debug("handleClientClose: unlinking SHM segment {s}", .{seg_name});
+        log.debug("channel", "handleClientClose: unlinking SHM segment {s}", .{seg_name});
         shm_helper.unlinkSegment(seg_name);
 
         // Unregister client SHM from registry
-        std.log.debug("handleClientClose: clearing registry entry {d}", .{client_shm_idx});
+        log.debug("channel", "handleClientClose: clearing registry entry {d}", .{client_shm_idx});
         registry.clearRegistryEntry(client_shm_idx);
 
         // Destroy named futex for this client
         const synchro_idx = @as(usize, @intCast(@max(req.fRefNum, 0)));
-        std.log.debug("handleClientClose: destroying synchro_table[{d}]", .{synchro_idx});
+        log.debug("channel", "handleClientClose: destroying synchro_table[{d}]", .{synchro_idx});
         self.synchro_table[synchro_idx].destroy();
 
         // Close notification socket for this client
@@ -384,7 +413,7 @@ pub const Channel = struct {
             self.notify_mutex.lock();
             if (idx2 < self.notify_sockets.items.len) {
                 if (self.notify_sockets.items[idx2] != -1) {
-                    std.log.debug("handleClientClose: closing notify socket [{d}]", .{idx2});
+                    log.debug("channel", "handleClientClose: closing notify socket [{d}]", .{idx2});
                     posix.close(self.notify_sockets.items[idx2]);
                     self.notify_sockets.items[idx2] = -1;
                 }
@@ -392,12 +421,12 @@ pub const Channel = struct {
             self.notify_mutex.unlock();
         }
 
-        std.log.info("Client closed: refnum {d}", .{req.fRefNum});
+        log.info("channel", "Client closed: refnum {d}", .{req.fRefNum});
 
         // Notify all clients about removed client
         var notif = makeNotification(.kRemoveClient, req.fRefNum, req.fRefNum, 0);
         @memcpy(notif.fName[0..], &client_name);
-        std.log.debug("handleClientClose: notifying clients", .{});
+        log.debug("channel", "handleClientClose: notifying clients", .{});
         self.notifyClients(&notif);
     }
 
@@ -407,10 +436,18 @@ pub const Channel = struct {
         const gm = self.graph_manager orelse return;
         gm.activate(req.fRefNum);
 
+        // Set fActive in client control SHM so client Deactivate() proceeds
+        const act_idx = @as(usize, @intCast(@max(req.fRefNum, 0)));
+        if (act_idx < self.client_controls.len) {
+            if (self.client_controls[act_idx]) |ctrl| {
+                ctrl.fActive = true;
+            }
+        }
+
         const result = request.JackResult{ .fResult = 0 };
         sendResponse(client_fd, result);
 
-        std.log.info("Client activated: refnum {d}", .{req.fRefNum});
+        log.info("channel", "Client activated: refnum {d}", .{req.fRefNum});
 
         var notif = makeNotification(.kActivateClient, req.fRefNum, req.fRefNum, 0);
         self.notifyClients(&notif);
@@ -425,7 +462,7 @@ pub const Channel = struct {
         const result = request.JackResult{ .fResult = 0 };
         sendResponse(client_fd, result);
 
-        std.log.info("Client deactivated: refnum {d}", .{req.fRefNum});
+        log.info("channel", "Client deactivated: refnum {d}", .{req.fRefNum});
     }
 
     fn handleRegisterPort(self: *Self, client_fd: posix.fd_t) void {
@@ -500,12 +537,200 @@ pub const Channel = struct {
         }
     }
 
+    fn handleConnectNamePorts(self: *Self, client_fd: posix.fd_t) void {
+        log.debug("channel", "handleConnectNamePorts: reading body", .{});
+        const req = (readBody(client_fd, request.JackPortConnectNameRequest) orelse {
+            log.debug("channel", "handleConnectNamePorts: readBody failed", .{});
+            return;
+        });
+        log.debug("channel", "handleConnectNamePorts: src={s} dst={s}", .{ std.mem.sliceTo(&req.fSrc, 0), std.mem.sliceTo(&req.fDst, 0) });
+
+        const gm = self.graph_manager orelse {
+            log.debug("channel", "handleConnectNamePorts: no graph manager", .{});
+            return;
+        };
+
+        const src_name = std.mem.sliceTo(&req.fSrc, 0);
+        const dst_name = std.mem.sliceTo(&req.fDst, 0);
+        log.debug("channel", "handleConnectNamePorts: finding src port", .{});
+        const src = gm.findPortByName(src_name) orelse {
+            log.debug("channel", "handleConnectNamePorts: src port not found", .{});
+            const result = request.JackResult{ .fResult = -1 };
+            sendResponse(client_fd, result);
+            return;
+        };
+        log.debug("channel", "handleConnectNamePorts: src={d}, finding dst", .{src});
+        const dst = gm.findPortByName(dst_name) orelse {
+            log.debug("channel", "handleConnectNamePorts: dst port not found", .{});
+            const result = request.JackResult{ .fResult = -1 };
+            sendResponse(client_fd, result);
+            return;
+        };
+        log.debug("channel", "handleConnectNamePorts: dst={d}, connecting", .{dst});
+
+        const ok = gm.connect(src, dst);
+        log.debug("channel", "handleConnectNamePorts: connect result={}", .{ok});
+        const result = request.JackResult{ .fResult = if (ok) 0 else -1 };
+        log.debug("channel", "handleConnectNamePorts: sending response", .{});
+        sendResponse(client_fd, result);
+        log.debug("channel", "handleConnectNamePorts: response sent", .{});
+
+        // Skip notification for now to avoid mutex contention with RT thread
+        if (ok) {
+            var notif = makeNotification(.kPortConnectCallback, req.fRefNum, @intCast(src), @intCast(dst));
+            if (self.notify_mutex.tryLock()) {
+                defer self.notify_mutex.unlock();
+                const total_size: i32 = comptime bodySize(request.JackClientNotification);
+                for (self.notify_sockets.items) |fd| {
+                    if (fd < 0) continue;
+                    var data_size: i32 = total_size;
+                    if (posix.write(fd, std.mem.asBytes(&data_size)) catch continue != 4) continue;
+                    _ = posix.write(fd, notif.fName[0..]) catch continue;
+                    _ = posix.write(fd, std.mem.asBytes(&notif.fRefNum)) catch continue;
+                    _ = posix.write(fd, std.mem.asBytes(&notif.fNotify)) catch continue;
+                    _ = posix.write(fd, std.mem.asBytes(&notif.fValue1)) catch continue;
+                    _ = posix.write(fd, std.mem.asBytes(&notif.fValue2)) catch continue;
+                    _ = posix.write(fd, std.mem.asBytes(&notif.fSync)) catch continue;
+                    _ = posix.write(fd, notif.fMessage[0..]) catch continue;
+                }
+            }
+        }
+    }
+
+    fn handleDisconnectNamePorts(self: *Self, client_fd: posix.fd_t) void {
+        log.debug("channel", "handleDisconnectNamePorts: reading body", .{});
+        const req = (readBody(client_fd, request.JackPortDisconnectNameRequest) orelse {
+            log.debug("channel", "handleDisconnectNamePorts: readBody failed", .{});
+            return;
+        });
+
+        const gm = self.graph_manager orelse return;
+        const src_name = std.mem.sliceTo(&req.fSrc, 0);
+        const dst_name = std.mem.sliceTo(&req.fDst, 0);
+        const src = gm.findPortByName(src_name) orelse {
+            const result = request.JackResult{ .fResult = -1 };
+            sendResponse(client_fd, result);
+            return;
+        };
+        const dst = gm.findPortByName(dst_name) orelse {
+            const result = request.JackResult{ .fResult = -1 };
+            sendResponse(client_fd, result);
+            return;
+        };
+
+        const ok = gm.disconnect(src, dst);
+        const result = request.JackResult{ .fResult = if (ok) 0 else -1 };
+        sendResponse(client_fd, result);
+
+        if (ok) {
+            var notif = makeNotification(.kPortDisconnectCallback, req.fRefNum, @intCast(src), @intCast(dst));
+            self.notifyClients(&notif);
+        }
+    }
+
+    fn handlePortRename(self: *Self, client_fd: posix.fd_t) void {
+        const req = (readBody(client_fd, request.JackPortRenameRequest) orelse return);
+
+        const gm = self.graph_manager orelse return;
+        const name = std.mem.sliceTo(&req.fName, 0);
+        const ok = gm.renamePort(req.fPort, name, req.fRefNum);
+
+        const result = request.JackResult{ .fResult = if (ok) 0 else -1 };
+        sendResponse(client_fd, result);
+
+        if (ok) {
+            var notif = makeNotification(.kPortRenameCallback, req.fRefNum, @intCast(req.fPort), 0);
+            @memcpy(notif.fName[0..name.len], name);
+            self.notifyClients(&notif);
+        }
+    }
+
+    fn handleSetBufferSize(self: *Self, client_fd: posix.fd_t) void {
+        const req = (readBody(client_fd, request.JackSetBufferSizeRequest) orelse return);
+
+        const ec = self.engine_shm orelse return;
+        ec.fBufferSize = req.fBufferSize;
+
+        const result = request.JackResult{ .fResult = 0 };
+        sendResponse(client_fd, result);
+
+        var notif = makeNotification(.kBufferSizeCallback, -1, @intCast(req.fBufferSize), 0);
+        self.notifyClients(&notif);
+    }
+
+    fn handleComputeTotalLatencies(self: *Self, client_fd: posix.fd_t) void {
+        const result = request.JackResult{ .fResult = 0 };
+        sendResponse(client_fd, result);
+
+        var notif = makeNotification(.kLatencyCallback, -1, 0, 0);
+        self.notifyClients(&notif);
+    }
+
+    fn handleSetFreeWheel(self: *Self, client_fd: posix.fd_t) void {
+        const result = request.JackResult{ .fResult = 0 };
+        _ = .{self, client_fd, result};
+    }
+
+    fn handleSetTimeBaseClient(self: *Self, client_fd: posix.fd_t) void {
+        const result = request.JackResult{ .fResult = 0 };
+        _ = .{self, client_fd, result};
+    }
+
+    fn handleReleaseTimebase(self: *Self, client_fd: posix.fd_t) void {
+        const result = request.JackResult{ .fResult = 0 };
+        _ = .{self, client_fd, result};
+    }
+
+    fn handleReserveClientName(self: *Self, client_fd: posix.fd_t) void {
+        _ = self;
+        _ = (readBody(client_fd, request.JackReserveNameRequest) orelse return);
+        const result = request.JackResult{ .fResult = 0 };
+        sendResponse(client_fd, result);
+    }
+
+    fn handleGetClientByUUID(self: *Self, client_fd: posix.fd_t) void {
+        _ = self;
+        _ = (readBody(client_fd, request.JackGetUUIDRequest) orelse return);
+        const result = request.JackUUIDResult{ .fResult = 0, .fUUID = [_]u8{0} ** c.JACK_UUID_STRING_SIZE };
+        sendResponse(client_fd, result);
+    }
+
+    fn handleGetUUIDByClient(self: *Self, client_fd: posix.fd_t) void {
+        _ = self;
+        _ = (readBody(client_fd, request.JackGetClientNameRequest) orelse return);
+        const result = request.JackClientNameResult{ .fResult = 0, .fName = [_]u8{0} ** c.JACK_CLIENT_NAME_SIZE_1 };
+        sendResponse(client_fd, result);
+    }
+
+    fn handleClientHasSessionCallback(self: *Self, client_fd: posix.fd_t) void {
+        _ = self;
+        _ = (readBody(client_fd, request.JackClientHasSessionCallbackRequest) orelse return);
+        const result = request.JackResult{ .fResult = 0 };
+        sendResponse(client_fd, result);
+    }
+
     pub fn notifyClients(self: *Self, notification: *const request.JackClientNotification) void {
-        // Wire format: fSize (i32) = JackClientNotification::Size() = 346
-        // Then all fields written individually (no padding)
         const total_size: i32 = comptime bodySize(request.JackClientNotification);
         self.notify_mutex.lock();
         defer self.notify_mutex.unlock();
+        for (self.notify_sockets.items) |fd| {
+            if (fd < 0) continue;
+            var data_size: i32 = total_size;
+            if (posix.write(fd, std.mem.asBytes(&data_size)) catch continue != 4) continue;
+            _ = posix.write(fd, notification.fName[0..]) catch continue;
+            _ = posix.write(fd, std.mem.asBytes(&notification.fRefNum)) catch continue;
+            _ = posix.write(fd, std.mem.asBytes(&notification.fNotify)) catch continue;
+            _ = posix.write(fd, std.mem.asBytes(&notification.fValue1)) catch continue;
+            _ = posix.write(fd, std.mem.asBytes(&notification.fValue2)) catch continue;
+            _ = posix.write(fd, std.mem.asBytes(&notification.fSync)) catch continue;
+            _ = posix.write(fd, notification.fMessage[0..]) catch continue;
+        }
+    }
+
+    pub fn tryNotifyClients(self: *Self, notification: *const request.JackClientNotification) void {
+        if (!self.notify_mutex.tryLock()) return;
+        defer self.notify_mutex.unlock();
+        const total_size: i32 = comptime bodySize(request.JackClientNotification);
         for (self.notify_sockets.items) |fd| {
             if (fd < 0) continue;
             var data_size: i32 = total_size;
@@ -562,7 +787,11 @@ fn bodySize(comptime T: type) i32 {
 fn readBody(client_fd: posix.fd_t, comptime T: type) ?T {
     var body_size_raw: i32 = undefined;
     if ((readFull(client_fd, std.mem.asBytes(&body_size_raw)) catch return null) != 4) return null;
-    if (body_size_raw != comptime bodySize(T)) return null;
+    const expected = comptime bodySize(T);
+    if (body_size_raw != expected) {
+        log.debug("channel", "readBody size mismatch: got={d} expected={d} type={s}", .{ body_size_raw, expected, @typeName(T) });
+        return null;
+    }
 
     var result: T = undefined;
     inline for (std.meta.fields(T)) |field| {
@@ -580,12 +809,14 @@ fn readBody(client_fd: posix.fd_t, comptime T: type) ?T {
 fn sendResponse(client_fd: posix.fd_t, data: anytype) void {
     inline for (std.meta.fields(@TypeOf(data))) |field| {
         const bytes = std.mem.asBytes(&@field(data, field.name));
+        log.debug("channel", "sendResponse: writing {d} bytes for field {s}", .{ bytes.len, field.name });
         const written = posix.write(client_fd, bytes) catch |e| {
-            std.log.err("sendResponse write error for field {s}: {}", .{ field.name, e });
+            log.err("channel", "sendResponse write error for field {s}: {}", .{ field.name, e });
             return;
         };
         if (written != bytes.len) {
-            std.log.err("sendResponse partial write for field {s}: {d}/{d}", .{ field.name, written, bytes.len });
+            log.err("channel", "sendResponse partial write for field {s}: {d}/{d}", .{ field.name, written, bytes.len });
         }
+        log.debug("channel", "sendResponse: wrote {d} bytes", .{written});
     }
 }

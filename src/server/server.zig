@@ -1,6 +1,7 @@
 const std = @import("std");
 const c = @import("../constants.zig");
 const request = @import("../protocol/request.zig");
+const log = @import("../log.zig");
 
 const Engine = @import("../engine/engine.zig").Engine;
 const EngineControl = @import("../engine/engine.zig").EngineControl;
@@ -94,11 +95,11 @@ pub const Server = struct {
         const eng_ctrl = try allocator.create(EngineControl);
         eng_ctrl.* = EngineControl.init(sync, temporary, timeout, rt, priority, verbose, server_name);
 
-        const eng = try allocator.create(Engine);
-        eng.* = Engine.init(allocator, graph_mgr, eng_ctrl);
-
         var synchro_table: [c.CLIENT_NUM]Synchro = undefined;
         for (&synchro_table) |*s| s.* = Synchro.init();
+
+        const eng = try allocator.create(Engine);
+        eng.* = Engine.init(allocator, graph_mgr, eng_ctrl, &synchro_table);
 
         return Self{
             .allocator = allocator,
@@ -145,11 +146,11 @@ pub const Server = struct {
 
     pub fn addDriver(self: *Self, di: DriverInterface, card_index: i32, port_name: []const u8, heap_allocated: bool) !void {
         if (!di.open()) {
-            std.log.err("Failed to open driver", .{});
+            log.err("driver", "open failed", .{});
             return error.DriverOpenFailed;
         }
         if (!di.attach()) {
-            std.log.err("Failed to attach driver ports", .{});
+            log.err("driver", "attach ports failed", .{});
             return error.DriverAttachFailed;
         }
         di.start();
@@ -281,7 +282,7 @@ pub const Server = struct {
     }
 
     pub fn open(self: *Self) !void {
-        std.log.info("Zig sizes: JackGraphManager={d} JackPort={d} ConnectionManager={d} ConnectionManagerWrapper={d} JackClientTiming={d} jack_shm_info_t={d}", .{
+        log.debug("shm", "sizes: GM={d} Port={d} CM={d} CMW={d} Timing={d} info={d}", .{
             @sizeOf(shm.JackGraphManager), @sizeOf(shm.JackPort), @sizeOf(shm.ConnectionManager), @sizeOf(shm.ConnectionManagerWrapper), @sizeOf(shm.JackClientTiming), @sizeOf(shm.jack_shm_info_t),
         });
         try self.channel.open();
@@ -298,7 +299,7 @@ pub const Server = struct {
             f.close();
         }
 
-        std.log.info("SHM segments created and registered, registry ready for clients", .{});
+        log.info("shm", "segments created, registry ready", .{});
 
         // Pass SHM references to channel for client handling
         self.channel.setShmContext(
@@ -398,7 +399,7 @@ pub const Server = struct {
                     .fSync = 0,
                     .fMessage = [_]u8{0} ** c.JACK_MESSAGE_SIZE_1,
                 };
-                self.channel.notifyClients(&notif);
+                self.channel.tryNotifyClients(&notif);
             }
 
             // Write all drivers
@@ -421,7 +422,7 @@ pub const Server = struct {
     }
 
     fn onDeviceAdded(self: *Self, info: DeviceInfo) void {
-        std.log.info("Hot-plug: device added ({s})", .{std.mem.sliceTo(&info.sysname, 0)});
+        log.info("hotplug", "device added ({s})", .{std.mem.sliceTo(&info.sysname, 0)});
 
         // Skip if card is already managed
         for (self.drivers.items) |entry| {
@@ -439,7 +440,7 @@ pub const Server = struct {
         const dev_name = std.fmt.bufPrint(&dev_name_buf, "hw:{d}", .{info.card_index}) catch return;
 
         const driver = self.allocator.create(AlsaDriver) catch {
-            std.log.err("Failed to allocate driver for hot-plug device", .{});
+            log.err("driver", "failed to allocate for hotplug", .{});
             return;
         };
         driver.* = AlsaDriver.init(
@@ -453,14 +454,14 @@ pub const Server = struct {
         );
 
         self.addDriver(driver.getInterface(), info.card_index, port_prefix_buf[0..port_prefix_len], true) catch {
-            std.log.err("Failed to add hot-plug driver", .{});
+            log.err("driver", "failed to add hotplug driver", .{});
             driver.vtable.close(driver);
             self.allocator.destroy(driver);
         };
     }
 
     fn onDeviceRemoved(self: *Self, info: DeviceInfo) void {
-        std.log.info("Hot-plug: device removed ({s})", .{std.mem.sliceTo(&info.sysname, 0)});
+        log.info("hotplug", "device removed ({s})", .{std.mem.sliceTo(&info.sysname, 0)});
 
         self.drivers_mutex.lock();
         defer self.drivers_mutex.unlock();
@@ -476,7 +477,7 @@ pub const Server = struct {
                 }
 
                 _ = self.drivers.swapRemove(idx);
-                std.log.info("Removed driver for card {d}", .{info.card_index});
+                log.info("driver", "removed card {d}", .{info.card_index});
                 return;
             }
         }

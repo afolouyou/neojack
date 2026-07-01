@@ -1,5 +1,6 @@
 const std = @import("std");
 const c = @import("../constants.zig");
+const log = @import("../log.zig");
 
 const conn = @import("connection_manager.zig");
 const atomic_state = @import("../sync/atomic_state.zig");
@@ -71,9 +72,38 @@ pub const GraphManager = struct {
         return &self.fPortArray.items[@as(usize, @intCast(index))];
     }
 
+    pub fn findPortByName(self: *Self, name: []const u8) ?u32 {
+        for (0..self.fPortMax) |i| {
+            const port = self.getPort(@intCast(i));
+            if (!port.fInUse) continue;
+            const port_name = std.mem.sliceTo(&port.fName, 0);
+            if (std.mem.eql(u8, port_name, name)) return @intCast(i);
+        }
+        return null;
+    }
+
+    pub fn renamePort(self: *Self, port_index: u32, new_name: []const u8, refnum: i32) bool {
+        if (port_index >= self.fPortMax) return false;
+        const port = self.getPort(port_index);
+        if (!port.fInUse) return false;
+        if (port.fRefNum != refnum) return false;
+        if (new_name.len >= c.REAL_JACK_PORT_NAME_SIZE_1) return false;
+
+        @memset(&port.fName, 0);
+        @memcpy(port.fName[0..new_name.len], new_name);
+
+        const gm = self.gm_shm orelse return true;
+        const base_addr = @intFromPtr(gm);
+        const port_offset = @offsetOf(shm.JackGraphManager, "fPortArray");
+        const port_addr = base_addr + port_offset + port_index * @sizeOf(shm.JackPort);
+        const dst: *shm.JackPort = @ptrFromInt(port_addr);
+        @memcpy(@as([*]u8, @ptrCast(dst))[0..@sizeOf(shm.JackPort)], @as([*]u8, @ptrCast(port))[0..@sizeOf(shm.JackPort)]);
+        return true;
+    }
+
     pub fn initShmState(self: *Self) void {
         const gm = self.gm_shm orelse return;
-        std.log.info("GraphManager SHM offset: {d}", .{@offsetOf(shm.JackGraphManager, "fPortArray")});
+        log.info("shm", "GraphManager offset: {d}", .{@offsetOf(shm.JackGraphManager, "fPortArray")});
         const cm0 = getCm(gm, 0);
         const cm1 = getCm(gm, 1);
 
@@ -88,9 +118,9 @@ pub const GraphManager = struct {
 
     pub fn allocatePort(self: *Self, refnum: i32, name: []const u8, port_type: []const u8, flags: u32, buffer_size: u32) ?u32 {
         _ = port_type;
-        std.log.debug("allocatePort called: refnum={d} name={s} flags={x}", .{ refnum, name, flags });
+        log.debug("graph", "allocatePort refnum={d} name={s}", .{ refnum, name });
         const gm = self.gm_shm orelse {
-            std.log.debug("allocatePort: gm_shm is null", .{});
+            log.debug("graph", "allocatePort: no shm", .{});
             return null;
         };
         const manager = writeNextStateStartShm(gm);
@@ -344,8 +374,49 @@ pub const GraphManager = struct {
         for (0..count) |i| {
             const dst = output[i];
             timings[@as(usize, dst)].fStatus = @intFromEnum(conn.ClientStatus.Triggered);
-            _ = manager.fInputCounter[@as(usize, dst)].signal(&synchro);
+            _ = manager.fInputCounter[@as(usize, dst)].signalSynchro(synchro);
         }
+    }
+
+    pub fn topologicalSort(self: *Self, manager: *ConnectionManager, active_refnums: []const u16, result: []u16) usize {
+        var visited: [c.CLIENT_NUM]bool = [_]bool{false} ** c.CLIENT_NUM;
+        var temp_mark: [c.CLIENT_NUM]bool = [_]bool{false} ** c.CLIENT_NUM;
+        var out_idx: usize = 0;
+
+        for (active_refnums) |r| {
+            if (!visited[r]) {
+                self.topologicalSortDfs(manager, r, &visited, &temp_mark, result, &out_idx);
+            }
+        }
+
+        return out_idx;
+    }
+
+    fn topologicalSortDfs(self: *Self, manager: *ConnectionManager, refnum: u16, visited: *[c.CLIENT_NUM]bool, temp_mark: *[c.CLIENT_NUM]bool, result: []u16, out_idx: *usize) void {
+        if (temp_mark[refnum]) return;
+        if (visited[refnum]) return;
+
+        temp_mark[refnum] = true;
+
+        var outputs: [c.CLIENT_NUM]u16 = undefined;
+        const count = manager.fConnectionRef.getOutputTable(refnum, &outputs);
+
+        for (0..count) |i| {
+            const dst = outputs[i];
+            if (!temp_mark[dst] and !visited[dst]) {
+                self.topologicalSortDfs(manager, dst, visited, temp_mark, result, out_idx);
+            }
+        }
+
+        temp_mark[refnum] = false;
+        visited[refnum] = true;
+        result[out_idx.*] = refnum;
+        out_idx.* += 1;
+    }
+
+    pub fn getCurrentConnectionManager(self: *Self) ?*ConnectionManager {
+        const gm = self.gm_shm orelse return null;
+        return readCurrentStateShm(gm);
     }
 
     pub fn activate(self: *Self, refnum: i32) void {
@@ -358,6 +429,7 @@ pub const GraphManager = struct {
 
     pub fn deactivate(self: *Self, refnum: i32) void {
         const gm = self.gm_shm orelse return;
+
         const manager = writeNextStateStartShm(gm);
         if (manager.isDirectConnection(@intCast(refnum), c.FREEWHEEL_DRIVER_REFNUM)) {
             _ = manager.directDisconnect(@intCast(refnum), c.FREEWHEEL_DRIVER_REFNUM);
@@ -366,6 +438,11 @@ pub const GraphManager = struct {
             _ = manager.directDisconnect(c.FREEWHEEL_DRIVER_REFNUM, @intCast(refnum));
         }
         writeNextStateStopShm(gm);
+
+        // Force graph finished in CURRENT state so client Deactivate() exits
+        const current = readCurrentStateShm(gm);
+        const fw_counter = &current.fInputCounter[c.FREEWHEEL_DRIVER_REFNUM];
+        fw_counter.fValue = 0;
     }
 };
 

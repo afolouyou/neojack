@@ -1,6 +1,7 @@
 const std = @import("std");
 const c_consts = @import("../constants.zig");
 const posix = std.posix;
+const log = @import("../log.zig");
 
 const c = @cImport({
     @cInclude("sys/mman.h");
@@ -106,8 +107,8 @@ pub fn initRegistry(server_name: []const u8) !void {
         hdr.hdr_len != @as(i32, @intCast(@sizeOf(jack_shm_header_t))) or
         hdr.entry_len != @as(i32, @intCast(@sizeOf(jack_shm_registry_t))))
     {
-        std.log.info("Registry RESET: magic={x} (want {x}) type={d} (want {d}) size={d} (want {d}) hdr_len={d} (want {d}) entry_len={d} (want {d}) hdr_sizeof={d} entry_sizeof={d}",
-            .{ hdr.magic, JACK_SHM_MAGIC, hdr.type, shmtype, hdr.size, @as(i32, @intCast(JACK_SHM_REGISTRY_SIZE)), hdr.hdr_len, @as(i32, @intCast(@sizeOf(jack_shm_header_t))), hdr.entry_len, @as(i32, @intCast(@sizeOf(jack_shm_registry_t))), @sizeOf(jack_shm_header_t), @sizeOf(jack_shm_registry_t) });
+        log.debug("shm", "registry init: magic=0x{x} size={d} hdr={d} entry={d}", .{
+            hdr.magic, @as(i32, @intCast(JACK_SHM_REGISTRY_SIZE)), @sizeOf(jack_shm_header_t), @sizeOf(jack_shm_registry_t) });
         @memset(@as([*]u8, @ptrCast(hdr))[0..JACK_SHM_REGISTRY_SIZE], 0);
         hdr.magic = JACK_SHM_MAGIC;
         hdr.protocol = 0;

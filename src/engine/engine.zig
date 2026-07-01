@@ -1,8 +1,11 @@
 const std = @import("std");
 const c = @import("../constants.zig");
+const log = @import("../log.zig");
 
 const GraphManager = @import("../graph/graph_manager.zig").GraphManager;
 const ConnectionManager = @import("../graph/connection_manager.zig").ConnectionManager;
+const conn = @import("../graph/connection_manager.zig");
+const Synchro = @import("../sync/synchro.zig").Synchro;
 
 const jack_nframes_t = u32;
 const jack_time_t = u64;
@@ -96,16 +99,18 @@ pub const Engine = struct {
     fLastSwitchUsecs: u64,
     fSignal: std.Thread.ResetEvent,
     allocator: std.mem.Allocator,
+    synchro_table: []Synchro,
 
     const Self = @This();
 
-    pub fn init(allocator: std.mem.Allocator, graph: *GraphManager, control: *EngineControl) Self {
+    pub fn init(allocator: std.mem.Allocator, graph: *GraphManager, control: *EngineControl, synchros: []Synchro) Self {
         return Self{
             .fGraphManager = graph,
             .fEngineControl = control,
             .fLastSwitchUsecs = 0,
             .fSignal = std.Thread.ResetEvent{},
             .allocator = allocator,
+            .synchro_table = synchros,
         };
     }
 
@@ -118,7 +123,8 @@ pub const Engine = struct {
             self.processNext(cur_cycle_begin);
             res = true;
         } else {
-            if (cur_cycle_begin > self.fLastSwitchUsecs + self.fEngineControl.fTimeOutUsecs) {
+            const timeout_us = self.fEngineControl.fTimeOutUsecs;
+            if (timeout_us > 0 and cur_cycle_begin > self.fLastSwitchUsecs + timeout_us) {
                 self.processNext(cur_cycle_begin);
                 res = true;
             } else {
@@ -133,15 +139,108 @@ pub const Engine = struct {
 
     fn processNext(self: *Self, cur_cycle_begin: u64) void {
         self.fLastSwitchUsecs = cur_cycle_begin;
-        _ = self.fGraphManager.runNextGraph();
-        // Notify clients of graph change
-        // fChannel.Notify(ALL_CLIENTS, kGraphOrderCallback, 0);
+        if (self.fGraphManager.runNextGraph()) {
+            self.fGraphManager.runCurrentGraph();
+        }
         self.fSignal.set();
     }
 
     fn processCurrent(self: *Self, cur_cycle_begin: u64) void {
-        _ = cur_cycle_begin;
-        self.fGraphManager.runCurrentGraph();
+        const manager = self.fGraphManager.getCurrentConnectionManager() orelse return;
+
+        const timings = &self.fGraphManager.fClientTiming;
+
+        // Build list of active triggered clients
+        var active: [c.CLIENT_NUM]u16 = undefined;
+        var active_count: usize = 0;
+        const timing_slice: []conn.ClientTiming = timings;
+        for (timing_slice, 0..) |*t, refnum| {
+            if (t.fStatus == @intFromEnum(conn.ClientStatus.Triggered) or
+                t.fStatus == @intFromEnum(conn.ClientStatus.NotTriggered))
+            {
+                const is_driver = refnum == 0 or refnum == 1;
+                if (!is_driver and t.fStatus == @intFromEnum(conn.ClientStatus.Triggered)) {
+                    active[active_count] = @intCast(refnum);
+                    active_count += 1;
+                }
+            }
+        }
+
+        // Sort topologically: drivers first, then clients by dependency
+        var order: [c.CLIENT_NUM]u16 = undefined;
+        var order_count: usize = 0;
+
+        // Audio driver (refnum 0) and freewheel driver (refnum 1) always first
+        if (timings[0].fStatus != @intFromEnum(conn.ClientStatus.NotTriggered)) {
+            order[order_count] = 0;
+            order_count += 1;
+        }
+        if (timings[1].fStatus != @intFromEnum(conn.ClientStatus.NotTriggered)) {
+            order[order_count] = 1;
+            order_count += 1;
+        }
+
+        // Client topological sort
+        if (active_count > 0) {
+            const sorted = self.fGraphManager.topologicalSort(manager, active[0..active_count], order[order_count..]);
+            order_count += sorted;
+        }
+
+        // Process each client in order
+        for (0..order_count) |i| {
+            const refnum = order[i];
+            const status = timings[@as(usize, refnum)].fStatus;
+
+            if (status == @intFromEnum(conn.ClientStatus.NotTriggered)) {
+                continue;
+            }
+
+            if (refnum == 0 or refnum == 1) {
+                timings[@as(usize, refnum)].fStatus = @intFromEnum(conn.ClientStatus.Finished);
+                const synchro = if (refnum < self.synchro_table.len) &self.synchro_table[@as(usize, refnum)] else null;
+                if (synchro) |s| {
+                    self.fGraphManager.resumeRefNum(@as(usize, refnum), s);
+                }
+                continue;
+            }
+
+            if (status == @intFromEnum(conn.ClientStatus.Triggered)) {
+                timings[@as(usize, refnum)].fStatus = @intFromEnum(conn.ClientStatus.Running);
+                timings[@as(usize, refnum)].fSignaledAt = cur_cycle_begin;
+
+                if (refnum < self.synchro_table.len) {
+                    const synchro = &self.synchro_table[@as(usize, refnum)];
+                    synchro.signal();
+
+                    timings[@as(usize, refnum)].fAwakeAt = @intCast(std.time.microTimestamp());
+                }
+
+                timings[@as(usize, refnum)].fFinishedAt = @intCast(std.time.microTimestamp());
+                timings[@as(usize, refnum)].fStatus = @intFromEnum(conn.ClientStatus.Finished);
+
+                const synchro = if (refnum < self.synchro_table.len) &self.synchro_table[@as(usize, refnum)] else null;
+                if (synchro) |s| {
+                    self.fGraphManager.resumeRefNum(@as(usize, refnum), s);
+                }
+            }
+        }
+
+        // Check XRun: clients that didn't finish or finished too late
+        const timeout_us = self.fEngineControl.fTimeOutUsecs;
+        if (timeout_us > 0) {
+            for (timing_slice, 0..) |*t, refnum| {
+                if (refnum == 0 or refnum == 1) continue;
+                const status = t.fStatus;
+                if (status != @intFromEnum(conn.ClientStatus.NotTriggered) and
+                    status != @intFromEnum(conn.ClientStatus.Finished))
+                {
+                    const elapsed = cur_cycle_begin -| t.fSignaledAt;
+                    if (elapsed > timeout_us) {
+                        log.err("engine", "XRun: client {d} not finished ({d}us)", .{ refnum, elapsed });
+                    }
+                }
+            }
+        }
     }
 };
 
