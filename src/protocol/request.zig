@@ -180,9 +180,9 @@ pub const JackGetClientNameRequest = extern struct {
 };
 
 pub const JackReserveNameRequest = extern struct {
-    fRefNum: i32,
-    fName: [c.JACK_CLIENT_NAME_SIZE_1]u8,
     fUUID: [c.JACK_UUID_STRING_SIZE]u8,
+    fName: [c.JACK_CLIENT_NAME_SIZE_1]u8,
+    fRefNum: i32,
 };
 
 pub const JackClientHasSessionCallbackRequest = extern struct {
