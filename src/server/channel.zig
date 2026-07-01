@@ -45,6 +45,10 @@ pub const Channel = struct {
     // Client control SHM pointers (for setting fActive etc.)
     client_controls: [CLIENT_NUM]?*shm.JackClientControl,
 
+    // Freewheel callback (set by server)
+    set_freewheel_cb: ?*const fn (on_off: bool, user_data: ?*anyopaque) void,
+    set_freewheel_data: ?*anyopaque,
+
     const Self = @This();
 
     pub fn init(allocator: std.mem.Allocator, server_name: []const u8) Self {
@@ -63,6 +67,8 @@ pub const Channel = struct {
             .notify_mutex = .{},
             .synchro_table = [_]NamedFutex{NamedFutex.init()} ** CLIENT_NUM,
             .client_controls = [_]?*shm.JackClientControl{null} ** CLIENT_NUM,
+            .set_freewheel_cb = null,
+            .set_freewheel_data = null,
         };
     }
 
@@ -79,6 +85,11 @@ pub const Channel = struct {
         self.client_table = client_table;
         self.engine_shm = engine_shm;
         self.graph_shm = graph_shm;
+    }
+
+    pub fn setFreewheelCallback(self: *Self, cb: *const fn (bool, ?*anyopaque) void, data: ?*anyopaque) void {
+        self.set_freewheel_cb = cb;
+        self.set_freewheel_data = data;
     }
 
     pub fn open(self: *Self) !void {
@@ -693,8 +704,12 @@ pub const Channel = struct {
     }
 
     fn handleSetFreeWheel(self: *Self, client_fd: posix.fd_t) void {
+        const req = (readBody(client_fd, request.JackSetFreeWheelRequest) orelse return);
+        if (self.set_freewheel_cb) |cb| {
+            cb(req.fOnOff != 0, self.set_freewheel_data);
+        }
         const result = request.JackResult{ .fResult = 0 };
-        _ = .{self, client_fd, result};
+        sendResponse(client_fd, result);
     }
 
     fn handleSetTimeBaseClient(self: *Self, client_fd: posix.fd_t) void {

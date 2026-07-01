@@ -304,10 +304,16 @@ pub const Server = struct {
 
         log.info("shm", "segments created, registry ready", .{});
 
-        // Init transport engine
+        // Init transport engine with notification callback
         if (self.engine_shm) |ec| {
             self.engine.setTransport(&ec.fTransport);
+            if (self.engine.transport) |*t| {
+                t.setNotifyCallback(transportNotify, self);
+            }
         }
+
+        // Freewheel callback
+        self.channel.setFreewheelCallback(setFreewheel, self);
 
         // Pass SHM references to channel for client handling
         self.channel.setShmContext(
@@ -435,6 +441,22 @@ pub const Server = struct {
             .added => self.onDeviceAdded(info),
             .removed => self.onDeviceRemoved(info),
             .changed => {},
+        }
+    }
+
+    fn transportNotify(state: shm.jack_transport_state_t, user_data: ?*anyopaque) void {
+        const self: *Self = @ptrCast(@alignCast(user_data orelse return));
+        _ = self;
+        _ = state;
+        log.debug("server", "transport state changed", .{});
+    }
+
+    fn setFreewheel(on_off: bool, user_data: ?*anyopaque) void {
+        _ = user_data;
+        if (on_off) {
+            log.info("server", "freewheel mode on", .{});
+        } else {
+            log.info("server", "freewheel mode off", .{});
         }
     }
 

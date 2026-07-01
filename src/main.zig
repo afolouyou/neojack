@@ -28,6 +28,7 @@ pub fn main() !void {
     var sample_rate: u32 = 48000;
     var buffer_size: u32 = 256;
     const port_max: u32 = c.PORT_NUM;
+    var log_file_path: ?[]const u8 = null;
 
     var args = try std.process.argsWithAllocator(allocator);
     defer args.deinit();
@@ -49,13 +50,15 @@ pub fn main() !void {
             sync = true;
         } else if (std.mem.eql(u8, arg, "-v") or std.mem.eql(u8, arg, "--verbose")) {
             verbose = true;
+        } else if (std.mem.eql(u8, arg, "--log-file")) {
+            log_file_path = args.next();
         } else if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help")) {
             try printUsage();
             return;
         }
     }
 
-    log.init(verbose, null);
+    log.init(verbose, log_file_path);
     defer log.deinit();
 
     log.info("server", "njackd v0.1.0 starting", .{});

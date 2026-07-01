@@ -11,11 +11,18 @@ pub const TransportCommand = enum(i32) {
 
 pub const TransportEngine = struct {
     te: *align(1) shm.JackTransportEngine,
+    notify_cb: ?*const fn (state: shm.jack_transport_state_t, user_data: ?*anyopaque) void,
+    notify_data: ?*anyopaque,
 
     const Self = @This();
 
     pub fn init(te: *align(1) shm.JackTransportEngine) Self {
-        return .{ .te = te };
+        return .{ .te = te, .notify_cb = null, .notify_data = null };
+    }
+
+    pub fn setNotifyCallback(self: *Self, cb: *const fn (shm.jack_transport_state_t, ?*anyopaque) void, data: ?*anyopaque) void {
+        self.notify_cb = cb;
+        self.notify_data = data;
     }
 
     pub fn cycleBegin(self: *Self, frame_rate: u32, time: u64) void {
@@ -36,7 +43,9 @@ pub const TransportEngine = struct {
             log.debug("transport", "command: {s}", .{@tagName(cmd)});
         }
 
-        switch (self.te.fTransportState) {
+        const old_state = self.te.fTransportState;
+
+        switch (old_state) {
             .JackTransportStopped => {
                 if (cmd == .Start) {
                     log.info("transport", "stopped → starting", .{});
@@ -65,6 +74,14 @@ pub const TransportEngine = struct {
                 }
             },
             .JackTransportLooping => {},
+        }
+
+        // Notify on state change
+        const new_state = self.te.fTransportState;
+        if (new_state != old_state) {
+            if (self.notify_cb) |cb| {
+                cb(new_state, self.notify_data);
+            }
         }
 
         _ = trySwitchState(self.te);
