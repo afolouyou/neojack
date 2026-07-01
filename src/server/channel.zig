@@ -563,7 +563,10 @@ pub const Channel = struct {
         const req = (readBody(client_fd, request.JackPortDisconnectRequest) orelse return);
 
         const gm = self.graph_manager orelse return;
-        const ok = gm.disconnect(req.fSrc, req.fDst);
+        const ok = if (req.fDst == c.ALL_PORTS)
+            gm.disconnectAll(req.fSrc)
+        else
+            gm.disconnect(req.fSrc, req.fDst);
 
         const result = request.JackResult{ .fResult = if (ok) 0 else -1 };
         sendResponse(client_fd, result);

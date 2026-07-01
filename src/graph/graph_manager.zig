@@ -125,7 +125,7 @@ pub const GraphManager = struct {
             return null;
         };
         const manager = writeNextStateStartShm(gm);
-        const port_index = self.allocatePortAux(refnum);
+        const port_index = self.allocatePortAux(refnum, name);
         if (port_index == c.NO_PORT) {
             writeNextStateStopShm(gm);
             return null;
@@ -184,8 +184,16 @@ pub const GraphManager = struct {
         );
     }
 
-    fn allocatePortAux(self: *Self, refnum: i32) u32 {
+    fn allocatePortAux(self: *Self, refnum: i32, name: []const u8) u32 {
         _ = refnum;
+        // Check for duplicate name
+        for (c.FIRST_AVAILABLE_PORT..self.fPortMax) |i| {
+            const p = &self.fPortArray.items[i];
+            if (!p.fInUse) continue;
+            const pname = std.mem.sliceTo(&p.fName, 0);
+            if (std.mem.eql(u8, pname, name)) return c.NO_PORT;
+        }
+
         for (c.FIRST_AVAILABLE_PORT..self.fPortMax) |i| {
             if (!self.fPortArray.items[i].fInUse) {
                 return @intCast(i);
@@ -258,6 +266,12 @@ pub const GraphManager = struct {
             return false;
         }
 
+        // Check duplicate connection
+        if (manager.checkConnection(src, dst)) {
+            writeNextStateStopShm(gm);
+            return false;
+        }
+
         if (!manager.connect(src, dst)) {
             writeNextStateStopShm(gm);
             return false;
@@ -287,6 +301,14 @@ pub const GraphManager = struct {
         const dst_ref: jack_int_t = @intCast(dst_port.fRefNum);
         manager.decDirectConnection(src_ref, dst_ref);
 
+        writeNextStateStopShm(gm);
+        return true;
+    }
+
+    pub fn disconnectAll(self: *Self, src: u32) bool {
+        const gm = self.gm_shm orelse return false;
+        const manager = writeNextStateStartShm(gm);
+        self.disconnectAllPort(manager, src);
         writeNextStateStopShm(gm);
         return true;
     }

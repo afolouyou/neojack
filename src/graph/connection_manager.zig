@@ -239,6 +239,10 @@ pub const ConnectionManager = extern struct {
         return self.fConnection[@as(usize, @intCast(port_src))].addItem(@intCast(port_dst));
     }
 
+    pub fn checkConnection(self: *const Self, port_src: jack_port_id_t, port_dst: jack_port_id_t) bool {
+        return self.fConnection[@as(usize, @intCast(port_src))].checkItem(@intCast(port_dst));
+    }
+
     pub fn disconnect(self: *Self, port_src: jack_port_id_t, port_dst: jack_port_id_t) bool {
         return self.fConnection[@as(usize, @intCast(port_src))].removeItem(@intCast(port_dst));
     }
