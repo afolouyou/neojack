@@ -2,6 +2,7 @@ const std = @import("std");
 const c = @import("../constants.zig");
 const shm = @import("../shm/layouts.zig");
 const log = @import("../log.zig");
+const midi = @import("../graph/midi_port.zig");
 
 const driver = @import("driver.zig");
 const DriverInterface = driver.DriverInterface;
@@ -71,14 +72,19 @@ pub const DummyDriver = struct {
         log.debug("dummy", "attach refnum={d}", .{self.state.refnum});
         const result = self.state.attachPorts();
         log.debug("dummy", "attach result={}", .{result});
-        
+
+        // Add MIDI ports
+        const gm = self.state.graph_manager;
+        _ = gm.allocatePort(self.state.refnum, "system:midi_in", shm.JACK_DEFAULT_MIDI_TYPE, 0x2 | 0x4 | 0x10, 256);
+        _ = gm.allocatePort(self.state.refnum, "system:midi_out", shm.JACK_DEFAULT_MIDI_TYPE, 0x1 | 0x4 | 0x10, 256);
+
         // Debug: check SHM port array
-        if (self.state.graph_manager.gm_shm) |gm| {
-            const shm_ports: [*]shm.JackPort = @ptrCast(&gm.fPortArray);
-            for (0..4) |i| {
+        if (gm.gm_shm) |g| {
+            const shm_ports: [*]shm.JackPort = @ptrCast(&g.fPortArray);
+            for (0..6) |i| {
                 const p = &shm_ports[i];
-                log.debug("dummy", "SHM port[{d}]: inUse={} flags=0x{x} name={s}", .{
-                    i, p.fInUse, p.fFlags,
+                log.debug("dummy", "SHM port[{d}]: inUse={} typeId={d} flags=0x{x} name={s}", .{
+                    i, p.fInUse, p.fTypeId, p.fFlags,
                     std.mem.sliceTo(@as([*:0]const u8, @ptrCast(&p.fName)), 0),
                 });
             }

@@ -14,6 +14,7 @@ const ConnectionManager = conn.ConnectionManager;
 const Port = @import("port.zig").Port;
 const FixedArray = conn.FixedArray;
 const shm = @import("../shm/layouts.zig");
+const midi = @import("midi_port.zig");
 
 const AtomicCounter = atomic_state.AtomicCounter;
 
@@ -117,8 +118,8 @@ pub const GraphManager = struct {
     // --- Allocation ---
 
     pub fn allocatePort(self: *Self, refnum: i32, name: []const u8, port_type: []const u8, flags: u32, buffer_size: u32) ?u32 {
-        _ = port_type;
-        log.debug("graph", "allocatePort refnum={d} name={s}", .{ refnum, name });
+        const is_midi = midi.isMidiPort(port_type);
+        log.debug("graph", "allocatePort refnum={d} name={s} midi={}", .{ refnum, name, is_midi });
         const gm = self.gm_shm orelse {
             log.debug("graph", "allocatePort: no shm", .{});
             return null;
@@ -131,12 +132,17 @@ pub const GraphManager = struct {
         }
 
         const port = self.getPort(port_index);
-        port.fTypeId = 0;
+        port.fTypeId = if (is_midi) 1 else 0;
         port.fFlags = flags;
         port.fRefNum = refnum;
         port.fInUse = true;
         port.fTied = c.NO_PORT;
-        port.clearBuffer(buffer_size);
+        if (is_midi) {
+            const buf_slice = @as([*]u8, @ptrCast(&port.fBuffer))[0..shm.JACK_MIDI_BUFFER_SIZE];
+            midi.midiBufferInit(buf_slice, shm.JACK_MIDI_BUFFER_SIZE, buffer_size);
+        } else {
+            port.clearBuffer(buffer_size);
+        }
 
         @memset(&port.fName, 0);
         if (name.len < c.REAL_JACK_PORT_NAME_SIZE_1) {

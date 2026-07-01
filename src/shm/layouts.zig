@@ -256,3 +256,35 @@ pub const ConnectionManager = extern struct {
 pub const ConnectionManagerWrapper = extern struct {
     inner: ConnectionManager align(1),
 };
+
+// --- MIDI ---
+
+pub const jack_midi_data_t = u8;
+
+pub const JackMidiEvent = extern struct {
+    pub const INLINE_SIZE_MAX: usize = 4;
+
+    time: u32 align(1),
+    size: i32 align(1),
+    data: extern union {
+        offset: i32,
+        inline_data: [4]u8,
+    } align(1),
+};
+
+pub const JACK_MIDI_BUFFER_SIZE: usize = 4096;
+pub const JACK_MIDI_MAGIC: u32 = 0x900df00d;
+
+pub const JackMidiBuffer = extern struct {
+    magic: u32 align(1),
+    buffer_size: i32 align(1),
+    nframes: u32 align(1),
+    write_pos: i32 align(1),
+    event_count: u32 align(1),
+    lost_events: u32 align(1),
+    events: [1]JackMidiEvent align(1),
+};
+
+pub const JACK_DEFAULT_AUDIO_TYPE = "32 bit float mono audio";
+pub const JACK_DEFAULT_MIDI_TYPE = "8 bit raw midi";
+
