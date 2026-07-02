@@ -782,7 +782,7 @@ pub const Channel = struct {
         const int_refnum = internal_client.load(name, dll_name, load_init, null) orelse {
             ct.free(refnum);
             const err = request.JackInternalClientLoadResult{
-                .fResult = -1, .fStatus = -1, .fIntRefNum = -1,
+                .fResult = -1, .fStatus = @intFromEnum(request.JackStatus.JackFailure), .fIntRefNum = 0,
             };
             sendResponse(client_fd, err);
             return;

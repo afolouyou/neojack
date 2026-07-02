@@ -305,3 +305,18 @@ pub const JackPortFlags = enum(u32) {
     JackPortCanMonitor = 0x8,
     JackPortIsTerminal = 0x10,
 };
+
+pub const JackStatus = enum(i32) {
+    JackFailure = 0x01,
+    JackInvalidOption = 0x02,
+    JackNameNotUnique = 0x04,
+    JackServerStarted = 0x08,
+    jackServerFailed = 0x10,
+    JackServerError = 0x20,
+    JackNoSuchClient = 0x40,
+    JackLoadFailure = 0x80,
+    JackInitFailure = 0x100,
+    JackShmFailure = 0x200,
+    JackVersionError = 0x400,
+    JackServerIsRunning = 0x800,
+};

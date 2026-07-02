@@ -23,8 +23,6 @@ var next_int_refnum: i32 = 256;
 pub fn allocRefnum() ?i32 {
     for (&internal_clients, 0..) |*slot, i| {
         if (slot.* == null) {
-            const refnum = next_int_refnum;
-            next_int_refnum += 1;
             slot.* = InternalClient{
                 .refnum = -1,
                 .int_refnum = @intCast(i),
@@ -34,7 +32,7 @@ pub fn allocRefnum() ?i32 {
                 .jack_initialize = null,
                 .jack_finish = null,
             };
-            return refnum;
+            return @intCast(i);
         }
     }
     return null;

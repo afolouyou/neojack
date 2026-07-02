@@ -15,6 +15,7 @@ const DriverInterface = @import("../drivers/driver.zig").DriverInterface;
 const DeviceMonitor = @import("../server/device_monitor.zig").DeviceMonitor;
 const DeviceInfo = @import("../server/device_monitor.zig").DeviceInfo;
 const AlsaDriver = @import("../drivers/alsa.zig").AlsaDriver;
+const TimedDriver = @import("../drivers/timed_driver.zig").TimedDriver;
 const SharedMemory = @import("../shm/mem.zig").SharedMemory;
 const shm = @import("../shm/layouts.zig");
 const registry = @import("../shm/registry.zig");
@@ -136,7 +137,8 @@ pub const Server = struct {
         // Free heap-allocated driver memory (stop/close already done in stop())
         for (self.drivers.items) |entry| {
             if (entry.heap_allocated) {
-                self.allocator.destroy(@as(*AlsaDriver, @ptrCast(@alignCast(entry.ptr))));
+                const ptr = entry.ptr;
+                self.allocator.destroy(@as(*TimedDriver, @ptrCast(@alignCast(ptr))));
             }
         }
         self.drivers.deinit(self.allocator);
